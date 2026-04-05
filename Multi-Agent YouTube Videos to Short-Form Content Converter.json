@@ -1,0 +1,1163 @@
+{
+  "name": "Multi-Agent YouTube Videos to Short-Form Content Converter",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5f1eae10-5270-4e99-8627-597e3451c82c",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.analysis_status }}",
+              "rightValue": "Waiting"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7d34e6af-8345-43c4-97b2-f85a04f01bf8",
+      "name": "Checks Video ID's status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        144,
+        560
+      ],
+      "typeVersion": 2.2,
+      "notes": "Filters rows to process only videos with 'Pending' status"
+    },
+    {
+      "parameters": {},
+      "id": "1753d326-bdf1-4ff3-8b38-070bfe21da06",
+      "name": "Picks only 1 video",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        384,
+        544
+      ],
+      "typeVersion": 1,
+      "notes": "Limits processing to 1 item at a time to prevent API overload"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $('Get Video ID').item.json.youtube_id }}",
+        "options": {}
+      },
+      "id": "3e98e62d-3f7e-45c3-b5df-f5914f1004a9",
+      "name": "Get YouTube Video Details",
+      "type": "n8n-nodes-base.youTube",
+      "position": [
+        608,
+        544
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "fDmuUwig1AQ0Mqy8",
+          "name": "YouTube account"
+        }
+      },
+      "notes": "Fetches video metadata including title, channel name, and other details"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n\n- Credentials needed: Gemini (or any AI model API), YouTube OAuth2, Google Sheets OAuth2, Supadata API (Free 100 requests/month, no credit card needed).\n\n- Configure the trigger Google Sheet node so that it is connected to your spreadsheet with the following columns that include the YouTube video's ID & the status (either \"Waiting\" or \"Done\"):\n\n\"| youtube_id | analysis_status | linkedin_1 | linkedin_ 2 | linkedin_3 | reels_1 | ... | shorts_1 | ... |\"\n\nIf columns are not exact, you will have to reconfigure the rest of the nodes so it matches with your column's titles.\n\n- Edit each AI agent's user prompt input with your niche and background in detail (a space to fill in is provideed already)",
+        "height": 480,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -352,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "24e09d43-02b6-4161-b55a-b5e218ed5c2d",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n\n- Workflow triggers every minute (or your own specified time) and looks for youtube video IDs in your spreadsheet that has the status \"Waiting\" (must be exact).\n- It takes the video IDs with that status and uses the YouTube API to get the video's metadata + Supadata's API to get the video transcript.\n- Each AI agent analyzes the YouTube title and transcript to create platform-specific short-form content outlines and drafts, following proven and researched techniques for their platform.\n- The content outlines and drafts are then added into your Google Sheet's respective columns for each content.",
+        "height": 480,
+        "width": 576,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "95d5cf13-25d3-4bbd-a278-7fa88e6eab3a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "1002d9a8-12be-4770-906a-5d62b900dbdb",
+      "name": "Get Video ID",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        -64,
+        560
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "EdlZKlyhLpiK2oom",
+          "name": "Google Sheets Trigger account"
+        }
+      },
+      "notes": "Triggers on new YouTube videos added to spreadsheet. Polls every minute for changes"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        784
+      ],
+      "id": "91af2da3-79e7-4dbd-8793-e490eaacb372",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        784
+      ],
+      "id": "6bd1f5de-360d-448e-b498-b392e556fdd3",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getTranscript",
+        "videoUrl": "=https://youtu.be/{{ $('Get Video ID').item.json.youtube_id }}",
+        "text": true
+      },
+      "type": "n8n-nodes-supadata.supadata",
+      "typeVersion": 1,
+      "position": [
+        848,
+        544
+      ],
+      "id": "27686cf1-08ad-46b2-9162-00606ad75a54",
+      "name": "Get transcript",
+      "credentials": {
+        "supadataApi": {
+          "id": "DZ4FYCrWSJa5s3w2",
+          "name": "Supadata account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "My niche or background (in great detail) is:\n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a YouTube Shorts content strategist.\nYour job is to analyze a long-form YouTube video (title + full transcript) and propose three specific Shorts concepts, each tied to concrete sections of the content, that balance reach (hooks) with depth (real insight).\n\nEven though you don’t receive timestamps, you must:\n\nIdentify discrete segments of the transcript that could stand alone as a 15–60 second Short.\n\nDescribe these segments clearly enough that a human editor can locate and clip them.\n\nYou must not invent stories, examples, or claims that do not exist in the transcript.\n\nInputs you receive\nVideo title: {{ $('Get YouTube Video Details').item.json.snippet.title }}\n\nFull transcript (no timestamps): {{ $json.content }}\n\nYour goals\nFor each of the 3 suggested Shorts:\n\nFind a self-contained moment\n\nA story, example, rant, framework, controversial statement, or punchy tip that can stand on its own.\n\nIt should not rely heavily on missing context from earlier or later in the video.\n\nDesign a strong Shorts hook\n\nHook can be:\n\nA line from the transcript that works well as an opening.\n\nA rephrased version of the core idea in the clip.\n\nMust be engaging but honest.\n\nGive editors enough guidance to locate the clip\n\nUse textual cues: “Look for the part where the creator says…”, “This is the section where they explain…”.\n\nMention approximate relative position: “early in the video”, “around the middle”, “near the end” if you can infer it from context.\n\nInclude a closing CTA\n\nVery short, YouTube-native CTAs: “Subscribe for more”, “Watch the full video for the full breakdown”, etc.\n\nMatch CTA to the content (learning more, seeing full process, etc.).\n\nStructure per suggested Short\nFor each of the 3 Shorts, provide:\n\nhook\n\nAn opening line suitable for the first 1–3 seconds of the Short.\n\nclip_description\n\n2–5 sentences describing what happens in the ideal clip: what is being explained, what story is told, or what transformation is described.\n\nClearly note any verbatim or near-verbatim lines that the editor should look for in the transcript to find the segment.\n\neditor_instructions\n\nPractical guidance for the editor: what kind of shots to prioritize (talking head vs B-roll), what to show on screen, whether to add captions/emphasis, and roughly where in the video this likely appears (early/middle/late).\n\ncta\n\nA short, YouTube-appropriate CTA line.\n\nStyle guidelines\nLanguage: English only.\n\nTone: clear, helpful, slightly more educational than TikTok/IG but still punchy.\n\nBalance reach and depth: the Shorts should be engaging but also convey a meaningful insight or “aha moment.”\n\nNumber of outputs\nGenerate exactly 3 suggested Shorts."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        1104
+      ],
+      "id": "89d79b6e-751c-4452-81cb-c0aecd6d44d7",
+      "name": "YouTube Shorts Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=My niche or background (in great detail) is:",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a short-form concept designer for Instagram Reels and TikTok.\nYour job is to turn a single long-form YouTube video into three highly shareable short-form video concepts, each with a clear hook, structured content, and CTA, based only on the title and transcript.\n\nYou design outlines, not scripts: your output is the conceptual skeleton that a creator or editor can implement.\n\nYou focus on maximum reach and engagement, while staying fully truthful to what is actually said or shown in the long-form content.\n\nInputs you receive\nVideo title: {{ $('Get YouTube Video Details').item.json.snippet.title }}\n\nFull transcript (no timestamps): {{ $json.content }}\n\nYour goals\nFor each of the 3 Reels/TikTok concepts:\n\nUse proven hook archetypes\n\nExample patterns:\n\n“You’re doing X wrong, here’s why…”\n\n“3 things I wish I knew before…”\n\n“If you struggle with X, watch this.”\n\n“Stop doing X. Do this instead.”\n\nHooks must be speakable within 1–3 seconds and tied to a real idea from the video.\n\nDeliver one clear promise\n\nEach concept should be about one main idea or micro-transformation only.\n\nDon’t cram in multiple unrelated tips.\n\nMap the structure visually\n\nThink in beats: Hook → Build tension/context → Deliver key point(s) → CTA.\n\nMake it easy to visualize what happens on screen (talking head, B-roll, text on screen).\n\nMaximize watch time and sharing\n\nUse curiosity, pattern interrupts, and clear problem statements.\n\nAvoid clickbait; everything must be backed by the transcript.\n\nStructure per concept\nFor each of the 3 content items, provide:\n\nhook\n\nA short, punchy, spoken hook line for the first 1–3 seconds.\n\ncontent_outline\n\nDescribe what the creator should say/show in order. (The actual content of the video)\n\nMention ideas like “On-screen text: …”, “Show B-roll of …” where useful.\n\ncta\n\nSimple, platform-native CTA (e.g. “Follow for more X”, “Save this for later”, “Watch the full breakdown on my channel”).\n\nYou will then return each post's hook + content + cta as one large paragraph or essay, following the JSON output parser you are connected to (one post is one JSON element)\n\nWhen building content_outline, you can reference specific ideas or quotes from the transcript, but don’t make up information that isn’t there.\n\nStyle guidelines\nLanguage: English only.\n\nTone: energetic, clear, concise.\n\nAssume vertical video, mobile-first, sound-on.\n\nEvery outline should feel native to Reels/TikTok culture (fast-paced, direct, visually supportive).\n\nNumber of outputs\nGenerate exactly 3 distinct concepts.\n\nEach should be viable as a standalone short-form video."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        544
+      ],
+      "id": "e155f64f-4299-4f76-9884-0ff337b4ac0d",
+      "name": "Reels/TikTok Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "My niche or background is (in detail): ",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are a specialist LinkedIn content strategist for educators, experts, and founders who publish long-form content on YouTube and want to turn each video into multiple high-authority, lead-generating LinkedIn posts.\n\nYour single job:\nTake the YouTube title and full transcript and create three complete LinkedIn post drafts that build authority, deliver real insight, and naturally drive profile or offer discovery (lead gen) without fake promises or exaggeration.\n\nYou do not invent facts or stories. You stay completely faithful to the ideas, stories, and claims actually present in the video, only reframing and structuring them for LinkedIn.\n\nInputs you receive\nVideo title: {{ $('Get YouTube Video Details').item.json.snippet.title }}\n\nFull transcript (no timestamps): {{ $json.content }}\n\nYou may assume the user will separately provide you with a detailed description of:\n\nTheir niche and audience\n\nTheir positioning (who they are, what they’re known for, what they sell)\n\nYou should infer these from the transcript when possible and otherwise stay neutral and professional.\n\nYour goals\nFor each of the 3 posts:\n\nBuild authority\n\nShowcase expertise, frameworks, and nuanced takes from the video.\n\nUse concrete examples and clear reasoning, not vague motivational fluff.\n\nDeliver standalone value\n\nEach post must make sense without watching the video.\n\nReaders should feel they “got something useful” just from reading the post.\n\nLead generation positioning\n\nUse a soft CTA that hints at the creator’s offer (e.g. coaching, services, newsletter, product) in a natural, non-spammy way.\n\nFocus on curiosity and relevance over hard selling.\n\nPlatform-native style\n\nUse short paragraphs and intentional line breaks.\n\nAvoid walls of text; every 1–3 sentences, create a new line.\n\nNo clickbait or dishonest claims.\n\nStructures you should use\nAcross the 3 posts, vary the format. Use at least 3 of these patterns:\n\nStory → Insight → CTA\n\nShort story or scenario from the video\n\nLesson distilled into 1–3 key insights\n\nSoft CTA (comment, follow, or check out more content/offer)\n\nMistakes / Myths Post\n\nHook listing a set of common mistakes or myths\n\nBullet list explaining each with clear, specific examples from the video\n\nCTA to follow or learn more from the creator\n\nFramework / Step-by-Step Post\n\nHook that promises a clear process\n\n3–7 step framework or checklist directly derived from the video\n\nCTA to save the post and explore more content\n\nBefore/After or Problem/Solution Post\n\nDescribe a painful “before” situation\n\nExplain the solution or shift explained in the video\n\nConnect it to the creator’s ongoing work or resources\n\nWriting style guidelines\nLanguage: English only.\n\nTone: confident, clear, professional-conversational.\n\nAvoid: hype, fake urgency, unrealistic guarantees, invented numbers or results.\n\nYou must not mention “transcript” or “video” in a meta way (e.g. “In this video, I said…” is okay if that’s how the creator talks; “Based on the transcript…” is not).\n\nPosts should be easy to skim, with:\n\nHooks on their own line\n\nOccasional bullets or numbered lists\n\nSimple vocabulary, but not dumbed down.\n\nNumber of outputs\nGenerate exactly 3 distinct LinkedIn posts.\n\nEach must include:\n\nA strong hook in the first 1–2 lines\n\nThe full body (context + insights + details)\n\nA clear CTA at the end"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1440,
+        32
+      ],
+      "id": "add1eb67-5ad0-4ab8-9f2e-b327c35ec0bf",
+      "name": "LinkedIn Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        1408
+      ],
+      "id": "dc85d924-4950-4978-9146-6aefeb02fd8b",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        1408
+      ],
+      "id": "7548961c-18f6-4ff3-909b-f3fc22ec6f06",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        288
+      ],
+      "id": "e1c6bffd-264e-4be6-b009-e91fc8938f91",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        288
+      ],
+      "id": "748aed7e-0a00-41f8-a3f5-c9e89a9a688d",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"content_1_shorts\": \"Description of which parts of the video to clip for this short + summary of the purpose and effect of the short\",\n\t\"content_2_shorts\": \"Description of which parts of the video to clip for this short + summary of the purpose and effect of the short\",\n  \"content_3_shorts\": \"Description of which parts of the video to clip for this short + summary of the purpose and effect of the short\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1664,
+        1408
+      ],
+      "id": "3daad9e6-b86a-450e-815d-18b2cf82ef5e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"lpost1\": \"Full post draft with Hook, content body, and CTA\",\n\t\"lpost2\": \"Full post draft with Hook, content body, and CTA\",\n  \"lpost3\": \"Full post draft with Hook, content body, and CTA\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1680,
+        288
+      ],
+      "id": "1f7b5f3c-ec6c-457d-9d49-a8dca5169c0b",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"post1\": \"Detailed outline of the hook to use, what the content or meat of the post will be about in great detail, and then the CTA or ending\",\n\t\"post2\": \"Detailed outline of the hook to use, what the content or meat of the post will be about in great detail, and then the CTA or ending\",\n  \"post3\": \"Detailed outline of the hook to use, what the content or meat of the post will be about in great detail, and then the CTA or ending\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1648,
+        784
+      ],
+      "id": "59d45c15-8769-47b0-a11f-02e239147ff6",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "content": "## Fetches YouTube Video Title & Transcript via APIs",
+        "height": 320,
+        "width": 1216,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -144,
+        432
+      ],
+      "typeVersion": 1,
+      "id": "cabf78c7-fcf9-435b-a372-f4b6224f5a69",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Multiagent short-form generator for different platforms",
+        "height": 1680,
+        "width": 608,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1232,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "5b087bdb-81d3-4305-8563-32ee531f05a2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Adds the final output to their respective columns",
+        "height": 1392,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2016,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "ad01d629-b268-4694-b25c-0ca4d6109512",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get YouTube Video Details').item.json.id }}",
+            "linkedin_1": "={{ $json.output.lpost1 }}",
+            "linkedin_2": "={{ $json.output.lpost2 }}",
+            "linkedin_3": "={{ $json.output.lpost3 }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_1",
+              "displayName": "linkedin_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_2",
+              "displayName": "linkedin_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_3",
+              "displayName": "linkedin_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reels_1",
+              "displayName": "reels_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_2",
+              "displayName": "reels_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_3",
+              "displayName": "reels_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_1",
+              "displayName": "shorts_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_2",
+              "displayName": "shorts_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_3",
+              "displayName": "shorts_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "cfcf4b48-c82c-453c-b02c-72dca2ce4fde",
+      "name": "Updates LinkedIn Columns with Output",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2144,
+        32
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get YouTube Video Details').item.json.id }}",
+            "reels_1": "={{ $json.output.post1 }}",
+            "reels_2": "={{ $json.output.post2 }}",
+            "reels_3": "={{ $json.output.post3 }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_1",
+              "displayName": "linkedin_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "linkedin_2",
+              "displayName": "linkedin_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "linkedin_3",
+              "displayName": "linkedin_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_1",
+              "displayName": "reels_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reels_2",
+              "displayName": "reels_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reels_3",
+              "displayName": "reels_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shorts_1",
+              "displayName": "shorts_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_2",
+              "displayName": "shorts_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_3",
+              "displayName": "shorts_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "d88bf2e3-833e-43a2-a575-e260907f3dff",
+      "name": "Updates Reels Column with Output",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2144,
+        544
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get YouTube Video Details').item.json.id }}",
+            "shorts_1": "={{ $json.output.content_1_shorts }}",
+            "shorts_2": "={{ $json.output.content_2_shorts }}",
+            "shorts_3": "={{ $json.output.content_3_shorts }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "linkedin_1",
+              "displayName": "linkedin_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "linkedin_2",
+              "displayName": "linkedin_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "linkedin_3",
+              "displayName": "linkedin_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_1",
+              "displayName": "reels_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_2",
+              "displayName": "reels_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "reels_3",
+              "displayName": "reels_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "shorts_1",
+              "displayName": "shorts_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shorts_2",
+              "displayName": "shorts_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shorts_3",
+              "displayName": "shorts_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "7086930e-ab76-4fee-a03d-0a53f291b3d5",
+      "name": "Updates Shorts Columns with Output",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2144,
+        1104
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Checks Video ID's status": {
+      "main": [
+        [
+          {
+            "node": "Picks only 1 video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Picks only 1 video": {
+      "main": [
+        [
+          {
+            "node": "Get YouTube Video Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video ID": {
+      "main": [
+        [
+          {
+            "node": "Checks Video ID's status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get YouTube Video Details": {
+      "main": [
+        [
+          {
+            "node": "Get transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reels/TikTok Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Reels/TikTok Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get transcript": {
+      "main": [
+        [
+          {
+            "node": "Reels/TikTok Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "YouTube Shorts Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LinkedIn Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reels/TikTok Agent": {
+      "main": [
+        [
+          {
+            "node": "Updates Reels Column with Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Agent": {
+      "main": [
+        [
+          {
+            "node": "Updates LinkedIn Columns with Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Shorts Agent": {
+      "main": [
+        [
+          {
+            "node": "Updates Shorts Columns with Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YouTube Shorts Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YouTube Shorts Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LinkedIn Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LinkedIn Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "YouTube Shorts Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LinkedIn Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Reels/TikTok Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "75d57751-06be-4da6-8701-f4b910d76593",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "RNWlzYhI5Xk01PEN",
+  "tags": []
+}

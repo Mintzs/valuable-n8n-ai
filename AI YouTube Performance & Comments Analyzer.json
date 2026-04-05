@@ -1,0 +1,539 @@
+{
+  "name": "AI YouTube Performance & Comments Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Get comments from HTTP Request node\nconst comments = $input.first().json.items\n\n// Get video title from the YouTube node\nconst videoTitle = $('Get YouTube Video Details').first().json.snippet.title;\n\n// Extract comment data\nconst processedComments = comments.map(item => {\n  const comment = item.snippet.topLevelComment.snippet;\n  return {\n    text: comment.textDisplay,\n    author: comment.authorDisplayName,\n    likes: comment.likeCount || 0,\n    publishedAt: comment.publishedAt,\n    replyCount: item.snippet.totalReplyCount || 0\n  };\n});\n\n// Calculate statistics\nconst totalComments = processedComments.length;\nconst totalLikes = processedComments.reduce((sum, c) => sum + c.likes, 0);\nconst avgLikes = totalComments > 0 ? (totalLikes / totalComments).toFixed(2) : 0;\nconst totalReplies = processedComments.reduce((sum, c) => sum + c.replyCount, 0);\n\n// Get top comments by likes\nconst topComments = processedComments\n  .sort((a, b) => b.likes - a.likes)\n  .slice(0, 5);\n\n// Prepare comment texts for AI analysis\nconst commentTexts = processedComments\n  .slice(0, 100) //\n  .map(c => c.text)\n  .join('\\n---\\n');\n\n// Basic sentiment analysis (count positive/negative keywords)\nconst positiveWords = ['love', 'great', 'awesome', 'amazing', 'excellent', 'good', 'fantastic', 'helpful', 'thanks'];\nconst negativeWords = ['hate', 'terrible', 'awful', 'bad', 'worst', 'horrible', 'useless', 'waste'];\n\nlet positiveCount = 0;\nlet negativeCount = 0;\n\nprocessedComments.forEach(comment => {\n  const lowerText = comment.text.toLowerCase();\n  positiveWords.forEach(word => {\n    if (lowerText.includes(word)) positiveCount++;\n  });\n  negativeWords.forEach(word => {\n    if (lowerText.includes(word)) negativeCount++;\n  });\n});\n\nreturn [{\n  json: {\n    videoTitle,\n    totalComments,\n    avgLikes,\n    totalReplies,\n    topComments,\n    commentTexts,\n    processedComments,\n    sentimentCounts: {\n      positive: positiveCount,\n      negative: negativeCount,\n      neutral: totalComments - positiveCount - negativeCount\n    }\n  }\n}];\n\n"
+      },
+      "id": "f2c2d2b5-44e3-4154-bdad-065354e5c63d",
+      "name": "Prepare Comments Data",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1584,
+        368
+      ],
+      "typeVersion": 2,
+      "notes": "Processes raw comments: extracts text, calculates stats, performs basic sentiment analysis, limits to 50 comments for AI"
+    },
+    {
+      "parameters": {
+        "sendTo": "something@gmail.com",
+        "subject": "=Performance & Comments analysis for {{ $('Get YouTube Video Details').item.json.snippet.title }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "46a0f379-51c5-48ce-a038-634da845a85b",
+      "name": "Gmail Account Configuration",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        2720,
+        192
+      ],
+      "webhookId": "90b8f9ad-4226-42a0-971b-7fa9f5f190bd",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Sends formatted analysis report via Gmail. Update SENDER_EMAIL_ADDRESS with actual recipient"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get Video ID').item.json.youtube_id }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ecc8a081-dcfe-4998-baaa-d11e319172ae",
+      "name": "Update Status on Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2720,
+        528
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        624
+      ],
+      "id": "59aef295-dbb9-4b18-9d78-5164dcbf2c9b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        624
+      ],
+      "id": "980c2171-024f-4432-818d-b6b77df185ef",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The youtube video you need to analyze has the following details:\n\n- Title: {{ $('Prepare Comments Data').item.json.videoTitle }}\n- Description: {{ $('Get YouTube Video Details').item.json.snippet.description }}\n\nNow, here are the following comments you must analyze and create a report with, following the detailed instructions in your system instruction:\n\n{{ $('Prepare Comments Data').item.json.commentTexts }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "# ROLE & OBJECTIVE\nYou are the Lead Audience Intelligence Analyst for a top-tier YouTube strategy firm. Your goal is to process raw user feedback into a high-precision, data-driven \"Audience Resonance Report.\"\n\nYou do not summarize comments; you analyze behavioral patterns, sentiment clusters, and viewer psychology to provide actionable content strategy.\n\n# INPUT DATA\nYou will be provided with:\n1. <video_context>: Title and description of the content.\n2. <raw_comments>: A raw dataset of viewer comments\n\n# ANALYSIS PROTOCOL (CHAIN OF THOUGHT)\nBefore generating the output, perform the following internal analysis:\n1. **Filter**: Discard bot comments, spam, and \"first\" comments. Focus on substantive feedback.\n2. **Sentiment Scoring**: Assign a sentiment value (-1 to +1) to every substantive comment.\n3. **Cluster Extraction**: Group comments into thematic clusters (e.g., \"Audio Quality,\" \"Pacing,\" \"Specific Joke,\" \"Editing Style\").\n4. **Resonance Calculation**: Calculate the \"Likeability Score\" (0-100) based on the ratio of Positive vs. Negative clusters and the intensity of the language used.\n\n# OUTPUT FORMAT (STRICT)\nYour response must strictly follow the report structure below. Do not add introductory conversational filler.\n\n## 1. PERFORMANCE SCORE: [0-100]\n**Rating:** [Integer]/100\n**Justification:** [1 sentence explaining the score based on sentiment ratio and intensity.]\n\n## 2. THE VIRAL TRIGGER (Why they commented)\n*Identify the #1 psychological driver that compelled users to stop watching and start typing. Was it a specific controversy, a relatable moment, a question you asked, or high emotion?*\n[Analysis]\n\n## 3. POSITIVE ANCHOR (Most Praised Element)\n*The specific element that viewers enjoyed the most.*\n- **Element:** [Name of element]\n- **Viewer Consensus:** [Summary of why they liked it, quoting key phrases if necessary]\n\n## 4. NEGATIVE FRICTION (Most Criticized Element)\n*The specific element that caused viewer churn or dissatisfaction.*\n- **Element:** [Name of element]\n- **Viewer Consensus:** [Summary of the complaint]\n\n## 5. STRATEGIC ACTION PLAN\n*Based strictly on the positive/negative anchors above, provide actionable rules for the next video.*\n\nWrite these actionable rules / suggestions in the following format:\n(CATEGORY): DO (suggestion), DONT (suggestions)\n\nWhen possible, add EVIDENCE from REAL viewer comments to justify your case or evaluation.\n\n## 6. VIEWER WISH LIST (Content Pipeline)\n*List the top 3 specific requests or topics viewers are asking for next.*\n1. [Request 1]\n2. [Request 2]\n3. [Request 3]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2032,
+        368
+      ],
+      "id": "7e43c332-4598-486b-841c-ff8e482486f4",
+      "name": "Comment Analyzer"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/commentThreads",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "part",
+              "value": "snippet"
+            },
+            {
+              "name": "videoId",
+              "value": "={{ $('Get Video ID').item.json.youtube_id }}"
+            },
+            {
+              "name": "maxResults",
+              "value": "1000"
+            },
+            {
+              "name": "order",
+              "value": "relevance"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "987d3c2a-9e9a-428c-86e4-79281811b187",
+      "name": "Get Video's Comments",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1344,
+        368
+      ],
+      "typeVersion": 4.2,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "fDmuUwig1AQ0Mqy8",
+          "name": "YouTube account"
+        }
+      },
+      "notes": "Retrieves top 100 comments ordered by relevance using YouTube API"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "8579978b-aa05-4bf9-8c92-b32631b10339",
+      "name": "Get Video ID",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        432,
+        384
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "EdlZKlyhLpiK2oom",
+          "name": "Google Sheets Trigger account"
+        }
+      },
+      "notes": "Triggers on new YouTube videos added to spreadsheet. Polls every minute for changes"
+    },
+    {
+      "parameters": {
+        "content": "## Gets Youtube Video ID & cleans its data (Title, Description, Comments)",
+        "height": 384,
+        "width": 1376,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "3020082e-8cd3-4ae8-8fd4-798e453f93ee",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## AI analyzes video's data and comment to perform in-depth analysis & evaluation",
+        "height": 560,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1856,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "d15162d9-2d71-40ec-afca-f747d0aba0a8",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Sends report via email & updates video analysis status on sheets",
+        "height": 704,
+        "width": 352,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2592,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "d81c8d4c-ebac-4fe8-87e3-eff15020f05e",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Workflow triggers every minute (or your own specified time) and looks for youtube video IDs in your spreadsheet that has the status \"Waiting\" (must be exact).\n- It takes the video IDs with that status and uses the YouTube API to get the video's title, description, comments, etc.\n- The fetched data by the API is cleaned and processed so it can be read by the AI easier.\n- The AI agent then analyzes the comments, performs sentiment analysis and identifies recurring themes, and creates an in-depth report with summaries + suggested future actions.\n- The report is then sent via email and the status of the YouTube video's ID is changed from \"Waiting\" > \"Done\"",
+        "height": 304,
+        "width": 656,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        384,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "68304bb8-3f74-4c71-8dab-6693433f9fda",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: Gemini (or any AI model API), YouTube OAuth2, Google Sheets OAuth2, Gmail OAuth2.\n- Configure the trigger Google Sheet node so that it is connected to your spreadsheet with the columns \n\n\"| youtube_id | analysis_status |\"\n\nIf columns are not exact, you will have to reconfigure the rest of the nodes so it matches with your column's titles.\n- Add your YouTube credentials in the \"Get YouTube Video Details\" node and \"Get Video's Comments\" node.\n- Configure Gmail node with your intended recipient email address.\n- Configure the last Google Sheet node to update your original sheet of YouTube video IDs so that their analysis_status changes from \"Waiting\" > \"Done\"",
+        "height": 336,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "b3db2494-69bd-4956-9f1b-4f595db70363",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $('Get Video ID').item.json.youtube_id }}",
+        "options": {}
+      },
+      "id": "9e0eb7f0-7cda-4d42-8d18-625bf5bac787",
+      "name": "Get YouTube Video Details",
+      "type": "n8n-nodes-base.youTube",
+      "position": [
+        1104,
+        368
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "fDmuUwig1AQ0Mqy8",
+          "name": "YouTube account"
+        }
+      },
+      "notes": "Fetches video metadata including title, channel name, and other details"
+    },
+    {
+      "parameters": {},
+      "id": "4837c283-27e3-404f-86f5-7615e15b738e",
+      "name": "Picks only 1 video",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        880,
+        368
+      ],
+      "typeVersion": 1,
+      "notes": "Limits processing to 1 item at a time to prevent API overload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5f1eae10-5270-4e99-8627-597e3451c82c",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.analysis_status }}",
+              "rightValue": "Waiting"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fc498928-e5a5-461b-9423-572523c37256",
+      "name": "Checks Video ID's status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        640,
+        384
+      ],
+      "typeVersion": 2.2,
+      "notes": "Filters rows to process only videos with 'Pending' status"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare Comments Data": {
+      "main": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Account Configuration": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Comment Analyzer",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Comment Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Update Status on Google Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gmail Account Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video's Comments": {
+      "main": [
+        [
+          {
+            "node": "Prepare Comments Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video ID": {
+      "main": [
+        [
+          {
+            "node": "Checks Video ID's status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get YouTube Video Details": {
+      "main": [
+        [
+          {
+            "node": "Get Video's Comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Picks only 1 video": {
+      "main": [
+        [
+          {
+            "node": "Get YouTube Video Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checks Video ID's status": {
+      "main": [
+        [
+          {
+            "node": "Picks only 1 video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "864cff0a-cb34-40e8-afee-b86ab34d4d6b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "2bFC8t6yRHWeErpB",
+  "tags": []
+}

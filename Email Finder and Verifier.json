@@ -1,0 +1,456 @@
+{
+  "name": "Email Finder and Verifier",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// Get form data from first input\nconst formData = $input.first().json;\n\n// Get AI domain from second input  \nconst aiData = $input.last().json;\n\nconst firstName = formData['First Name'].toLowerCase();\nconst lastName = formData['Last Name'].toLowerCase();\nconst domain = aiData.content.parts[0].text.trim().toLowerCase();\n\n// Get first and last initials\nconst firstInitial = firstName.charAt(0);\nconst lastInitial = lastName.charAt(0);\n\n// Generate all common email permutations\nconst permutations = [\n  `${firstName}.${lastName}@${domain}`,\n  `${firstName}${lastName}@${domain}`,\n  `${firstName}_${lastName}@${domain}`,\n  `${firstName}-${lastName}@${domain}`,\n  `${lastName}.${firstName}@${domain}`,\n  `${firstName}@${domain}`,\n  `${lastName}@${domain}`,\n  `${firstInitial}.${lastName}@${domain}`,\n  `${firstInitial}${lastName}@${domain}`,\n  `${firstName}.${lastInitial}@${domain}`,\n  `${firstName}${lastInitial}@${domain}`,\n  `${firstInitial}.${lastInitial}@${domain}`,\n  `${firstInitial}${lastInitial}@${domain}`,\n  `${lastInitial}.${firstName}@${domain}`,\n  `${lastInitial}${firstName}@${domain}`\n];\n\n// Remove duplicates\nconst uniquePermutations = [...new Set(permutations)];\n\n// Return as array of items\nreturn uniquePermutations.map(email => ({\n  json: {\n    email: email,\n    firstName: firstName,\n    lastName: lastName,\n    domain: domain\n  }\n}));\n"
+      },
+      "id": "bd556e4e-e850-4243-a6f9-06ffc3cf2930",
+      "name": "Generate Email Permutations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "772c1afb-fe75-4aaf-9c44-98a941fa056a",
+      "name": "Split In Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -656,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json.validations.domain_exists }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            },
+            {
+              "id": "condition2",
+              "leftValue": "={{ $json.validations.is_disposable }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false"
+              }
+            },
+            {
+              "id": "2aea6df9-9809-4b08-ad07-a95d9c1abf5e",
+              "leftValue": "={{ $json.validations.mailbox_exists }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "60febdb0-2a71-4f76-9435-918e48b2d801",
+      "name": "Is Email Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "validEmail",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "firstName",
+              "value": "={{ $('Generate Email Permutations').item.json.firstName }}"
+            },
+            {
+              "name": "lastName",
+              "value": "={{ $('Generate Email Permutations').item.json.lastName }}"
+            },
+            {
+              "name": "domain",
+              "value": "={{ $('Generate Email Permutations').item.json.domain }}"
+            },
+            {
+              "name": "mx_records_found",
+              "value": "={{ $json.mx_records_found }}"
+            },
+            {
+              "name": "smtp_check_passed",
+              "value": "={{ $json.smtp_check_passed }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e991ed44-6b4c-45b4-b42d-006acd33ea94",
+      "name": "Format Valid Email",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "d9006d08-bcd0-4be7-98d5-7d174ec768dd",
+      "name": "Loop Back",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "cbe89b5a-e65a-4f7a-8c6a-df92a9a0b82e",
+      "name": "Merge Valid Emails",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [
+        272,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Input Form",
+        "formDescription": "User inputs contact person's First name, Last name, and Company name",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "First Name"
+            },
+            {
+              "fieldLabel": "Last Name"
+            },
+            {
+              "fieldLabel": "Company Name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -1760,
+        112
+      ],
+      "id": "a6f83fb3-cf46-43db-ab60-4b5100191915",
+      "name": "On form submission",
+      "webhookId": "17c6346b-685c-4457-a6f8-023dd423bb4f"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1104,
+        -64
+      ],
+      "id": "860005f9-4568-4d7b-b18a-b0fa16b831ca",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "content": "## Model\nDepending on the model you choose, it may hallucinate/give the wrong email domain, hence lowering accuracy depending on the Company you choose.",
+        "height": 208,
+        "width": 288,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1536,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "c6ba7ddd-923c-4963-b2ec-d068086e5900",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Research the real company email domain name of the following company/business: {{ $json['Company Name'] }}\n\ne.g. \"Focus on your sport\" has the email domain name focusonyoursport.nl\n\nThe output requirements is very strict, but simple: ONLY output the email domain name in a single line, nothing else."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        112
+      ],
+      "id": "92353730-f1c4-4512-8085-3d652a811f19",
+      "name": "Find Email Domain Name",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## API Selection\nCurrently, the workflow uses the free unlimited rapid-email-verify API. However, in case of preference, issues, or inaccuracies, you can edit the \"Verify Email\" node to use any other email verification APIs you want.\n\nExample, QuickEmailVerification's API gives 3000 Free Verification Requests / Month for business emails: https://quickemailverification.com/",
+        "height": 208,
+        "width": 416,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "2b2e7647-d960-4445-9cd6-13255a2db58d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "url": "https://rapid-email-verifier.fly.dev/api/validate",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "email",
+              "value": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "55444df1-ba7e-419f-8bea-d99035d17708",
+      "name": "Verify Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -448,
+        112
+      ],
+      "alwaysOutputData": true,
+      "notes": "No API key needed! Completely free and unlimited. Privacy-first, no data storage."
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        16
+      ],
+      "id": "833c0554-3045-4412-8f5a-cc685d9b0a5a",
+      "name": "Append or update row in sheet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Generate Email Permutations": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split In Batches": {
+      "main": [
+        [
+          {
+            "node": "Verify Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Email Valid?": {
+      "main": [
+        [
+          {
+            "node": "Format Valid Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Valid Email": {
+      "main": [
+        [
+          {
+            "node": "Merge Valid Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Back": {
+      "main": [
+        [
+          {
+            "node": "Split In Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Find Email Domain Name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Generate Email Permutations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Valid Emails": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Email Domain Name": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Verify Email": {
+      "main": [
+        [
+          {
+            "node": "Is Email Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "df6006ea-49e6-4c7c-89e6-baba4c1b23de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "O51icPtJGjZeV44F",
+  "tags": []
+}

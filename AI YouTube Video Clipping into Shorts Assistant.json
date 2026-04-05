@@ -1,0 +1,613 @@
+{
+  "name": "AI YouTube Video Clipping into Shorts Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5f1eae10-5270-4e99-8627-597e3451c82c",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.analysis_status }}",
+              "rightValue": "Waiting"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c29e5fd0-2969-4c02-b477-6e1df8103096",
+      "name": "Checks Video ID's status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        496,
+        720
+      ],
+      "typeVersion": 2.2,
+      "notes": "Filters rows to process only videos with 'Pending' status"
+    },
+    {
+      "parameters": {},
+      "id": "5c067f5a-95f7-47dc-9090-327940aee2c8",
+      "name": "Picks only 1 video",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        736,
+        704
+      ],
+      "typeVersion": 1,
+      "notes": "Limits processing to 1 item at a time to prevent API overload"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $('Get Video ID').item.json.youtube_id }}",
+        "options": {}
+      },
+      "id": "cf98df2e-6ba8-4eab-82bf-a4fa5ce9277d",
+      "name": "Get YouTube Video Details",
+      "type": "n8n-nodes-base.youTube",
+      "position": [
+        960,
+        704
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "fDmuUwig1AQ0Mqy8",
+          "name": "YouTube account"
+        }
+      },
+      "notes": "Fetches video metadata including title, channel name, and other details"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n\n- Credentials needed: Gemini (or any AI model API), YouTube OAuth2, Google Sheets OAuth2, Supadata API (Free 100 requests/month, no credit card needed).\n\n- Configure the trigger Google Sheet node so that it is connected to your spreadsheet with the following columns that include the YouTube video's ID & the status (either \"Waiting\" or \"Done\"):\n\n\"| youtube_id | analysis_status | shorts_1 | shorts_2 | ... | shorts_7 |\"\n\nIf columns are not exact, you will have to reconfigure the rest of the nodes so it matches with your column's titles.\n\n- Connect the last Google Sheet node to the same sheet so the respective \"shorts_x\" column will store the AI's output.\n\n- Edit the AI agent's user prompt input with any specific themes or ideas you want the clipping videos to focus on from your YouTube video, or a desired hook / editing style.",
+        "height": 480,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "00933867-3728-406a-a46f-86aacb40b3a9",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n\n- Workflow triggers every minute (or your own specified time) and looks for youtube video IDs in your spreadsheet that has the status \"Waiting\" (must be exact).\n- It takes the video IDs with that status and uses the YouTube API to get the video's metadata + Supadata's API to get the video transcript.\n- Code nodes calculates the timestamps using data from the Supadata node, and then cleans the output for the AI agent.\n- AI agent analyzes the YouTube title and transcript to create 7 short-form \"clipping\" content outlines and drafts, including the ideal clips to use for the video.\n- The content outlines and drafts are then added into your Google Sheet.",
+        "height": 480,
+        "width": 576,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        976,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "3c82d458-4a09-4c75-87e6-3104a6da48e4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 503707757,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=503707757"
+        },
+        "options": {}
+      },
+      "id": "15bff7ef-f7ba-492c-b191-944036f2d8b9",
+      "name": "Get Video ID",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        288,
+        720
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "EdlZKlyhLpiK2oom",
+          "name": "Google Sheets Trigger account"
+        }
+      },
+      "notes": "Triggers on new YouTube videos added to spreadsheet. Polls every minute for changes"
+    },
+    {
+      "parameters": {
+        "operation": "getTranscript",
+        "videoUrl": "=https://youtu.be/{{ $('Get Video ID').item.json.youtube_id }}"
+      },
+      "type": "n8n-nodes-supadata.supadata",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        704
+      ],
+      "id": "89c40d02-6b1a-4d88-b9b9-d8bb93e70f74",
+      "name": "Get transcript",
+      "credentials": {
+        "supadataApi": {
+          "id": "DZ4FYCrWSJa5s3w2",
+          "name": "Supadata account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        1008
+      ],
+      "id": "7589923f-f6db-4655-a306-268626748b26",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        1008
+      ],
+      "id": "da6d69b7-abb5-4541-8f7a-b0c8d9d5a765",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"short_1\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n\t\"short_2\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n  \"short_3\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n  \"short_4\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n\t\"short_5\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n  \"short_6\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\",\n  \"short_7\": \"The detailed outline and plan of the short, including what hook to use, the main intention or purpose of the short, and all the exact timestamps or clips being used in this clip (reference transcript if you must)\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2448,
+        1008
+      ],
+      "id": "aba7be81-10fc-46d5-9c27-815b95e65039",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "content": "## Fetches YouTube Video Title & Transcript via APIs",
+        "height": 320,
+        "width": 1216,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        208,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "92f00aee-7ef2-44ed-b8cb-25e9639f8b97",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 503707757,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=503707757"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get YouTube Video Details').first().json.id }}",
+            "shorts_1": "={{ $json.output.short_1 }}",
+            "shorts_2": "={{ $json.output.short_2 }}",
+            "shorts_3": "={{ $json.output.short_3 }}",
+            "shorts_4": "={{ $json.output.short_4 }}",
+            "shorts_5": "={{ $json.output.short_5 }}",
+            "shorts_6": "={{ $json.output.short_6 }}",
+            "shorts_7": "={{ $json.output.short_7 }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_1",
+              "displayName": "shorts_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_2",
+              "displayName": "shorts_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_3",
+              "displayName": "shorts_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_4",
+              "displayName": "shorts_4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_5",
+              "displayName": "shorts_5",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_6",
+              "displayName": "shorts_6",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shorts_7",
+              "displayName": "shorts_7",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3ca46000-5e56-4ab0-b0d6-8ebed677fe57",
+      "name": "Updates Shorts Columns with Output",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2800,
+        704
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Following your very detailed system prompt, I want you to generate the 7 YouTube shorts \"clipping\" videos for the following video and requirements:\n\ntitle: {{ $('Get YouTube Video Details').first().json.snippet.title }}\nsegments: {{ $node[\"Cleans data to feed AI\"].json[\"segments\"] }}\ntheme or idea I want the clips to show from the video:\nPreferred style of hooks, title, or editing: \n",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are an expert YouTube Shorts content strategist and editor. Your job is to read a full YouTube video (via title + transcript segments with timestamps) and propose multiple high-quality clipping ideas that can become viral-ready Shorts.\n\nYou will:\n\nUnderstand the core topic and promise of the long-form video.\n\nScan all segments (with timestamps) to find self-contained, high-impact moments.\n\nFor each moment, design a Shorts concept with:\n\nClear intention/purpose\n\nStrong hook line\n\nSummary of what happens in the clip\n\nPractical editor notes\n\nExact start/end timestamps to clip\n\nYou must never invent facts, stories, or results that are not present in the transcript. You may rephrase for clarity, but everything must stay truthful to the original content.\n\n## IT IS ABSOLUTELY CRUCIAL YOU DO NOT HALLUCINATE THE TIMESTAMPS OF THE TRANSCRIPTS OR CLIPS. You must only use the existing start_seconds and end_seconds from the provided segments. Never create new timestamps or adjust them; select the most appropriate block or combination of adjacent blocks and copy their timing exactly.\n\nInputs you receive\nYou will receive a JSON object with at least:\n\nvideo_title: string, the full YouTube title\n\nsegments: array of objects, each like:\n\njson\n{\n  \"text\": \"…\",\n  \"start_seconds\": 123.45,\n  \"end_seconds\": 128.90,\n  \"start_hms\": \"02:03\",\n  \"end_hms\": \"02:08\"\n}\nThe segments array represents the whole transcript in chronological order, with timing for each piece.\n\nYour goals\nExtract the essence of the video\n\nInfer the main topic, target viewer, and key value the video delivers.\n\nIdentify recurring themes, frameworks, stories, rants, and “aha” explanations.\n\nFind strong Shorts candidates\n\nA good Shorts clip should:\n\nBe 15–60 seconds worth of speech (you can approximate by grouping neighboring segments). Maximum length of clip you may provide is 5 minutes.\n\nContain one main idea, tip, story, or punchy statement.\n\nMake sense on its own, without needing much extra context.\n\nPrioritize:\n\nSpiky/contrarian opinions.\n\nClear how-to steps or mini-frameworks.\n\nStories or examples with an emotional or surprising twist.\n\n“If you X, do this instead” type moments.\n\n(### SPECIAL CASE: if the user identifies what kind of theme or ideas they want to clip from the YouTube video via the user prompt, then focus on finding parts of the video using the transcript that has that theme or idea)\n\nDefine a clear intention/purpose for each Short\nFor every suggested clip, explicitly state the purpose, for example:\n\n“Hook new viewers by exposing a common mistake.”\n\n“Build authority by sharing a unique framework.”\n\n“Drive to the full video for the full breakdown.”\n\n“Deliver a quick, actionable tip people will save.”\n​\n\nDesign a strong on-screen hook\n\nWrite a hook line that could be spoken in the first 1–3 seconds of the Short.\n\nIt must be honest, specific, and taken from or grounded in the actual content.\n\nPrefer proven patterns like:\n\n“If you struggle with X, watch this.”\n\n“You’re doing X wrong, here’s why.”\n\n“Most people do this, but here’s what actually works.”\n\nGive editors enough context to clip correctly\n\nUse start_seconds / end_seconds and/or start_hms / end_hms to define the clipping window.\n\nExplain what happens in that window:\n\nWhat is being said?\n\nWhat is the key transformation, story, or insight?\n\nProvide simple editor instructions:\n\nWhether to keep it as talking head or add B-roll.\n\nWhere to emphasize words with on-screen text.\n\nWhether to cut pauses or keep them for drama.\n\nHow to work with segments\nTreat segments as a continuous transcript.\n\nYou may conceptually group multiple neighboring segments into a single clipping idea when they form one coherent moment.\n\nAvoid suggestions that:\n\nCut in the middle of a sentence.\n\nDepend heavily on missing context before/after.\n\nContain repeated or filler content.\n\nWhen describing the candidate clip, reference representative lines from the segments in natural language (e.g. “This is the part where the creator says ‘…’”), but do not output the entire transcript.\n\nNumber of clipping ideas\nGenerate between 5 and 12 clipping ideas per video, depending on how much strong material you detect.\n\nPrefer fewer, higher-quality ideas over many weak ones.\n\n### OUTPUT\nYou will generate 7 different shorts or clipping ideas from one YouTube video. All the ideas and information you generate (hooks, exact clipping timestamps, intention/purpose, all the things required in the system prompt above) will be written in the form of an essay or text report. The final output will then be a JSON format of each post being 1 element with its report (follow the example in the output parser you are connected to)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        2224,
+        704
+      ],
+      "id": "ddcaa7a9-9878-4539-babc-94ad12f0804d",
+      "name": "YouTube Clipping Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Gathers and cleans the timestamps of the transcript",
+        "height": 272,
+        "width": 512,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1488,
+        608
+      ],
+      "typeVersion": 1,
+      "id": "63629bc5-4ea7-4604-8492-03502646e474",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Expecting input like: { content: [ { text, offset, duration, ... }, ... ] }\n\nfunction toHMS(seconds) {\n  const sec = Math.floor(seconds);\n  const h = Math.floor(sec / 3600);\n  const m = Math.floor((sec % 3600) / 60);\n  const s = sec % 60;\n\n  const hh = h > 0 ? String(h).padStart(2, '0') + ':' : '';\n  const mm = String(m).padStart(2, '0');\n  const ss = String(s).padStart(2, '0');\n\n  return hh + mm + ':' + ss;\n}\n\nconst input = $json;\nconst chunks = input.content || [];\n\nconst out = chunks.map(chunk => {\n  const startSec = chunk.offset / 1000;\n  const endSec = (chunk.offset + chunk.duration) / 1000;\n\n  return {\n    text: chunk.text,\n    offset_ms: chunk.offset,\n    duration_ms: chunk.duration,\n    start_seconds: startSec,\n    end_seconds: endSec,\n    start_hms: toHMS(startSec),\n    end_hms: toHMS(endSec),\n  };\n});\n\n// Return as items for downstream nodes\nreturn out.map(o => ({ json: o }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        704
+      ],
+      "id": "b0b58bd9-4a50-4752-91df-6a462eef5b2c",
+      "name": "Calculates timestamp"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gather all incoming items\nconst items = $input.all();\n\n// Map to segments while excluding offset_ms and duration_ms\nconst segments = items.map(item => {\n  const { offset_ms, duration_ms, ...rest } = item.json;\n  return rest;\n});\n\nreturn [\n  {\n    json: {\n      segments\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        704
+      ],
+      "id": "4ada0776-ca93-4d28-bf08-aedc1ec3a492",
+      "name": "Cleans data to feed AI"
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent generates the shorts \"clipping\" ideas and outline, and stores it on your Google Sheet",
+        "height": 608,
+        "width": 912,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2032,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "3b990ece-9ed9-4859-8aac-db0c4e55e5ed",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## WARNING\nThe AI agent's capabilities to generate content ideas, purpose, and hooks work really well during testing. However, depending on what AI model you use, it may HALLUCINATE the specific timestamps of the clips it is referencing for each short.\n\nSo beware of the timestamps they reference.",
+        "height": 208,
+        "width": 512,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2176,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "d3422c55-48ea-4322-a9b4-dc3757317ddc",
+      "name": "Sticky Note5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Checks Video ID's status": {
+      "main": [
+        [
+          {
+            "node": "Picks only 1 video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Picks only 1 video": {
+      "main": [
+        [
+          {
+            "node": "Get YouTube Video Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video ID": {
+      "main": [
+        [
+          {
+            "node": "Checks Video ID's status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get YouTube Video Details": {
+      "main": [
+        [
+          {
+            "node": "Get transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get transcript": {
+      "main": [
+        [
+          {
+            "node": "Calculates timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YouTube Clipping Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "YouTube Clipping Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "YouTube Clipping Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube Clipping Agent": {
+      "main": [
+        [
+          {
+            "node": "Updates Shorts Columns with Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculates timestamp": {
+      "main": [
+        [
+          {
+            "node": "Cleans data to feed AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleans data to feed AI": {
+      "main": [
+        [
+          {
+            "node": "YouTube Clipping Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2a154795-b31b-4aa8-acef-dc30cc826c11",
+  "meta": {
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "0ACWyVdqphOrsSyA",
+  "tags": []
+}

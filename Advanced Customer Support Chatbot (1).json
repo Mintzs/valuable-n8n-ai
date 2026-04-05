@@ -1,0 +1,404 @@
+{
+  "name": "Advanced Customer Support Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "customCss": ":root {\n  /* Colors */\n  --chat--color-primary: #e74266;\n  --chat--color-primary-shade-50: #db4061;\n  --chat--color-primary-shade-100: #cf3c5c;\n  --chat--color-secondary: #20b69e;\n  --chat--color-secondary-shade-50: #1ca08a;\n  --chat--color-white: #ffffff;\n  --chat--color-light: #f2f4f8;\n  --chat--color-light-shade-50: #e6e9f1;\n  --chat--color-light-shade-100: #c2c5cc;\n  --chat--color-medium: #d2d4d9;\n  --chat--color-dark: #101330;\n  --chat--color-disabled: #d2d4d9;\n  --chat--color-typing: #404040;\n\n  /* Base Layout */\n  --chat--spacing: 1rem;\n  --chat--border-radius: 0.25rem;\n  --chat--transition-duration: 0.15s;\n  --chat--font-family: (\n    -apple-system,\n    BlinkMacSystemFont,\n    'Segoe UI',\n    Roboto,\n    Oxygen-Sans,\n    Ubuntu,\n    Cantarell,\n    'Helvetica Neue',\n    sans-serif\n  );\n\n  /* Window Dimensions */\n  --chat--window--width: 400px;\n  --chat--window--height: 600px;\n  --chat--window--bottom: var(--chat--spacing);\n  --chat--window--right: var(--chat--spacing);\n  --chat--window--z-index: 9999;\n  --chat--window--border: 1px solid var(--chat--color-light-shade-50);\n  --chat--window--border-radius: var(--chat--border-radius);\n  --chat--window--margin-bottom: var(--chat--spacing);\n\n  /* Header Styles */\n  --chat--header-height: auto;\n  --chat--header--padding: var(--chat--spacing);\n  --chat--header--background: var(--chat--color-dark);\n  --chat--header--color: var(--chat--color-light);\n  --chat--header--border-top: none;\n  --chat--header--border-bottom: none;\n  --chat--header--border-left: none;\n  --chat--header--border-right: none;\n  --chat--heading--font-size: 2em;\n  --chat--subtitle--font-size: inherit;\n  --chat--subtitle--line-height: 1.8;\n\n  /* Message Styles */\n  --chat--message--font-size: 1rem;\n  --chat--message--padding: var(--chat--spacing);\n  --chat--message--border-radius: var(--chat--border-radius);\n  --chat--message-line-height: 1.5;\n  --chat--message--margin-bottom: calc(var(--chat--spacing) * 1);\n  --chat--message--bot--background: var(--chat--color-white);\n  --chat--message--bot--color: var(--chat--color-dark);\n  --chat--message--bot--border: none;\n  --chat--message--user--background: var(--chat--color-secondary);\n  --chat--message--user--color: var(--chat--color-white);\n  --chat--message--user--border: none;\n  --chat--message--pre--background: rgba(0, 0, 0, 0.05);\n  --chat--messages-list--padding: var(--chat--spacing);\n\n  /* Toggle Button */\n  --chat--toggle--size: 64px;\n  --chat--toggle--width: var(--chat--toggle--size);\n  --chat--toggle--height: var(--chat--toggle--size);\n  --chat--toggle--border-radius: 50%;\n  --chat--toggle--background: var(--chat--color-primary);\n  --chat--toggle--hover--background: var(--chat--color-primary-shade-50);\n  --chat--toggle--active--background: var(--chat--color-primary-shade-100);\n  --chat--toggle--color: var(--chat--color-white);\n\n  /* Input Area */\n  --chat--textarea--height: 50px;\n  --chat--textarea--max-height: 30rem;\n  --chat--input--font-size: inherit;\n  --chat--input--border: 0;\n  --chat--input--border-radius: 0;\n  --chat--input--padding: 0.8rem;\n  --chat--input--background: var(--chat--color-white);\n  --chat--input--text-color: initial;\n  --chat--input--line-height: 1.5;\n  --chat--input--placeholder--font-size: var(--chat--input--font-size);\n  --chat--input--border-active: 0;\n  --chat--input--left--panel--width: 2rem;\n\n  /* Button Styles */\n  --chat--button--color: var(--chat--color-light);\n  --chat--button--background: var(--chat--color-primary);\n  --chat--button--padding: calc(var(--chat--spacing) * 1 / 2) var(--chat--spacing);\n  --chat--button--border-radius: var(--chat--border-radius);\n  --chat--button--hover--color: var(--chat--color-light);\n  --chat--button--hover--background: var(--chat--color-primary-shade-50);\n  --chat--close--button--color-hover: var(--chat--color-primary);\n\n  /* Send and File Buttons */\n  --chat--input--send--button--background: var(--chat--color-white);\n  --chat--input--send--button--color: var(--chat--color-secondary);\n  --chat--input--send--button--background-hover: var(--chat--color-primary-shade-50);\n  --chat--input--send--button--color-hover: var(--chat--color-secondary-shade-50);\n  --chat--input--file--button--background: var(--chat--color-white);\n  --chat--input--file--button--color: var(--chat--color-secondary);\n  --chat--input--file--button--background-hover: var(--chat--input--file--button--background);\n  --chat--input--file--button--color-hover: var(--chat--color-secondary-shade-50);\n  --chat--files-spacing: 0.25rem;\n\n  /* Body and Footer */\n  --chat--body--background: var(--chat--color-light);\n  --chat--footer--background: var(--chat--color-light);\n  --chat--footer--color: var(--chat--color-dark);\n}\n\n\n/* You can override any class styles, too. Right-click inspect in Chat UI to find class to override. */\n.chat-message {\n\tmax-width: 50%;\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "d214721e-f421-4578-8008-480cc8e277b4",
+      "name": "When chat message received",
+      "webhookId": "7710b925-d363-497f-a8b5-ee3810bf2d84"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=This tool will notify a human customer support operator to carry on the ticket, inquiry, or concerns of the customer you are dealing with. Your job is to only use this tool as a final resort if the customer is demanding or asking in anyway to speak to a human operator. \n\n## Following requirements MUST be fulfilled to use this tool:\n- You run into an issue you cannot solve or have answers to, so need a human operator to carry on.\nOR\n- Customer demands to talk to a human operator instead.\n- Customer must provide their contact information first (email or phone number, preferably email) before you call this tool, and you must include their contact info in the body of the email sent to the human operator.\n- Customer has provided their first and last name so the human operator knows who they are contacting (you must ask for these details before you execute this tool and include it into the email body content)",
+        "sendTo": "support@gmail.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', `Subject line should follow the format\n\n\"Customer Support Inquiry: {described concern}\"`, 'string') }}",
+        "emailType": "text",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', `Contents should summarize the customer's inquiry or concern, their first and last name, what led to needing to contact a human, and the contact information of the customer (provided by them when asked before initating this tool) so we can carry the conversation ourselves.`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        400,
+        336
+      ],
+      "id": "5dd8665e-70d7-4f4e-909d-ecfe55c2a2b9",
+      "name": "Send email to human operator",
+      "webhookId": "2ea9e5e0-2a32-4f7f-9dfa-0ce971f97430",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        208
+      ],
+      "id": "ce412953-67d5-4c58-9b8d-d53b2d53e886",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "operation": "get"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        896,
+        336
+      ],
+      "id": "49abfc66-1a37-42d9-9bed-eb51558770f0",
+      "name": "Specific \"x\" company document"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        352
+      ],
+      "id": "68176c3d-0166-42b2-8108-8a055fa1ba64",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        128,
+        352
+      ],
+      "id": "ba0a518f-6e1b-41f1-8e07-fe04c84dc379",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "rT8IiogOJgMLyFtI",
+          "name": "gemini2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Xe1dMLON2LCTjqIx1zafEqpRucJUUaKikXlibQ3sBus",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xe1dMLON2LCTjqIx1zafEqpRucJUUaKikXlibQ3sBus/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Xe1dMLON2LCTjqIx1zafEqpRucJUUaKikXlibQ3sBus/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Full name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Full_name', `The provided full name of the lead that wanted to talk to a human operator`, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', `(if provided) The email of the lead that wanted to talk to a human operator`, 'string') }}",
+            "Number": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Number', `(if provided) The phone number of the lead that wanted to talk to a human operator`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full name",
+              "displayName": "Full name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Number",
+              "displayName": "Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1056,
+        336
+      ],
+      "id": "373ee286-abe6-4e96-a5ea-b7f04fea3192",
+      "name": "Lead Collection Database",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool when needed to query about any company information that may be in a company document to answer a customer's inquiry. Here are the list of EXACT document names you should and can access for your answers:\n- (currently nothing, unconfigured)",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        576,
+        336
+      ],
+      "id": "66f6f6ac-fee4-4e49-91d2-7325cf98b752",
+      "name": "RAG Company Knowledge Base",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aKn8nu7MaX80q0gH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: Gmail OAuth2 (for human operator emails), Google Drive OAuth2 (for knowledge base RAG), Google Docs OAuth2 (for specific document RAG), Google Sheets OAuth2 (for lead database), Gemini (or any AI model API).\n\n- Create a Google Sheet for your lead database with columns: Full name, Email, Phone. Add the sheet to the \"Lead Collection Database\" node.\n\n- Configure the \"Send email to human operator\" Gmail node with your operator's email address (the person who will handle escalated customer inquiries).\n\n- Connect your Google Drive folder containing company knowledge documents to the \"Company knowledge base\" node (specify all documents the tool should/can access in the tool's manual description input), and link any specific important documents to the Google Docs RAG nodes.\n\n- Set your company website URL in the HTTP node for real-time scraping.\n\nFill in all {{placeholders}} in the system prompt with your company details: name, brand voice, document descriptions, RAG routing logic, operator email, and fallback contact method.",
+        "height": 336,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -256,
+        -512
+      ],
+      "typeVersion": 1,
+      "id": "259dc9c8-32a5-4686-94f6-c4a81d3cd944",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Customer asks a question through the chatbot interface.\n\n- AI searches your Google Drive knowledge base and specific Google Docs for relevant information first.\n\n- If information is insufficient or the question requires real-time data (pricing, availability, page locations), the AI scrapes your company website via the HTTP node.\n\n- If the AI finds a confident answer, it responds directly to the customer. If uncertain or if the customer requests a human, the AI collects their name and contact info (email or phone).\n\n- Once contact details are collected, the AI sends a summary email to your human operator via Gmail (including customer details and inquiry topic) and updates the lead in your Google Sheet.\n\n- Customer is notified that an operator will contact them within one business day, and the chatbot asks if they need help with anything else before ending the conversation.",
+        "height": 416,
+        "width": 624,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        -512
+      ],
+      "typeVersion": 1,
+      "id": "33693430-2070-4a70-affd-c5802e5f4974",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## WARNING\n\nIt is INCREDIBLY IMPORTANT to make sure your tools' names and manual description is described in detail so the AI agent can better understand which tool to use for which purpose, and how.\n\nMake sure ALL REQUIRED input variables about your company / entity are filled in inside the AI agent's system prompt to maximize personalization and accuracy.\n\nDetail is key with these type of agents.",
+        "height": 240,
+        "width": 560,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "1023ae9d-2f13-413d-97df-7385d6a00501",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are {{company_name}}'s AI customer support assistant. Your role is to provide accurate, helpful support by leveraging company knowledge sources and escalating to human operators when necessary.\n\n**Brand Voice & Tone:**\n{{brand_voice_description}}\n[Example: \"Friendly, professional, and empathetic. Use clear language, avoid jargon, and maintain a warm tone.\"]\n\n---\n\n## 🛠️ Available Tools\n\nYou have access to the following tools:\n\n1. **\"Company knowledge base\"** (Google Drive RAG)\n   - Contains: {{gdrive_content_description}}\n \n\n2. **\"Specific 'x' company document\"** (Google Docs RAG)\n   - {{document_1_name}}: Contains {{document_1_content}}\n   - {{document_2_name}}: Contains {{document_2_content}}\n   - {{document_3_name}}: Contains {{document_3_content}}\n   - [Add or remove documents as needed]\n   - [Example: \"Pricing Document: Current pricing tiers and packages\"]\n\n3. **\"Access static information from company website (RAG Information source)\"** (HTTP Node)\n   - Use for: Real-time info (pricing, availability, hours), navigational help (page locations), content not in RAG sources (NOT FOR CONTACTING A HUMAN OPERATOR OR REPRESENTATIVE, THAT IS THROUGH THE GMAIL TOOL)\n   - Website: {{company_website_url}}\n\n4. **\"Send email to human operator\"** (Gmail)\n   - Escalates customer to human support, use this tool when wanted to forward the conversation details to a human representative.\n   - Sends email to: {{operator_email}}\n   - **Requirements before use:** Customer's first name, last name, and at least one contact method (email OR phone number)\n\n5. **\"Lead Collection Database\"** (Google Sheets)\n   - Updates lead information for customers escalated to human operators\n   - Spreadsheet: {{spreadsheet_name_or_id}}\n\n---\n\n## 📋 Core Operating Rules\n\n### **Information Sourcing Priority**\n1. **First:** Search RAG sources (\"Company knowledge base\" and specific documents)\n2. **Then:** If RAG is insufficient OR the query is website-native (e.g., \"Where can I find the pricing page?\" or real-time info like current hours/availability), use \"Scrape information from company website\"\n3. **Never:** Provide information from your training data or assumptions—only use tool outputs\n\nOnly use RAG sources for information gathering, but actions like sending the email for human operator or updating leads database has their own independent tools.\n\n### **When to Use Which RAG Source**\n{{rag_routing_logic}}\n[Example: \"For billing questions, check 'Pricing Document'. For technical issues, check 'Product Manual'. For general inquiries, search 'Company knowledge base' first.\"]\n\n---\n\n## 👤 Contact Information Collection\n\n**Preemptive Collection (Optional):**\n- You may casually collect the customer's name and contact info early in the conversation (e.g., \"I'm happy to help! May I have your name in case we need to follow up?\")\n- This is **not required** for the customer to continue using the chatbot\n- If a customer volunteers their info at any point (e.g., \"I'm John Smith, john@email.com\"), immediately note it for potential escalation\n\n**Required for Escalation:**\nBefore using \"Send email to human operator,\" you **must** have:\n- First name\n- Last name\n- At least one contact method: Email OR Phone number\n\nIf missing any required info, politely request it: \"To connect you with a specialist, I'll need your full name and either an email address or phone number. Could you provide that?\"\n\n---\n\n## 🚨 Escalation to Human Operator\n\n**Trigger Escalation When:**\n1. You cannot confidently answer the customer's inquiry after checking all available sources, OR\n2. The customer explicitly requests to speak with a human operator\n\n**Escalation Process:**\n\n**Step 1: Assess Confidence**\nIf you're uncertain, respond with:\n\"I cannot be 100% certain about this inquiry, but [provide potential answer based on available info]. Would you prefer I connect you to a real human operator who can reach out to you in the near future?\"\n\n**Step 2: Collect Required Info**\nEnsure you have: First name, last name, email OR phone number.\n\n**Step 3: Identify Inquiry Topic**\nDetermine the topic/category of the customer's inquiry (e.g., \"Billing issue,\" \"Technical support,\" \"Product question\") for the operator summary.\n\n**Step 4: Send Email to Operator**\nUse \"Send email to human operator\" with the following format:\n\n**Subject:** New Customer Inquiry: {{inquiry_topic}}\n\n**Body:**\nCustomer Escalation Request\n\n**Customer Details:**\n- Name: {{first_name}} {{last_name}}\n- Email: {{customer_email}} (if provided)\n- Phone: {{customer_phone}} (if provided)\n\n**Inquiry Topic:** {{inquiry_topic}}\n\n**Inquiry Summary:**\n{{brief_summary_of_customer_issue}}\n\n**Conversation Context:**\n{{relevant_conversation_excerpts_if_helpful}}\n\n---\n\n**Step 5: Update Lead Database**\nUse \"Lead Collection Database\" to add a new row with:\n- First Name: {{first_name}}\n- Last Name: {{last_name}}\n- Email: {{customer_email}} (or \"Not provided\")\n- Phone: {{customer_phone}} (or \"Not provided\")\n- Inquiry Topic: {{inquiry_topic}}\n- Date: {{current_date}}\n- Status: \"Pending human contact\"\n\n**Step 6: Confirm with Customer**\n\"A human operator has been contacted and should reach out to you through the contact information you've provided within the next business day. For now, is there anything else I can help you with?\"\n\n- If customer says **no or goodbye:** \"Thank you for contacting {{company_name}}. Have a great day!\"\n- If customer has **more questions:** Continue providing support\n\n---\n\n## ⚠️ Error Handling\n\nIf a tool fails (email doesn't send, sheet doesn't update):\n1. **Silently retry** the tool once\n2. If retry **succeeds:** Continue normally without mentioning the error\n3. If retry **fails:** Inform the customer: \"I'm currently experiencing technical difficulties and am unable to process your request at the moment. Please contact us directly at {{fallback_contact_method}} for immediate assistance.\"\n\n---\n\n## ✅ Response Guidelines\n\n1. **Be accurate:** Only use information from your tools—never invent answers\n2. **Be concise:** Keep responses clear and to-the-point unless detail is requested\n3. **Be proactive:** If you detect the customer might need escalation, offer it early\n4. **Be transparent:** If you're unsure, admit it and offer human escalation\n5. **Match the tone:** Maintain {{brand_voice_description}} throughout\n6. **Stay in scope:** Focus on customer support—don't engage in off-topic conversations"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e21ea24f-907d-492d-b622-4351e0422c40",
+      "name": "Root AI Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request to scrape data from the company website.",
+        "url": "https://www.promptshop.co/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        336
+      ],
+      "id": "dc15d303-e814-4388-a1f9-c6c65f0af8b5",
+      "name": "Access static information from company website (RAG source)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email to human operator": {
+      "ai_tool": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Specific \"x\" company document": {
+      "ai_tool": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Lead Collection Database": {
+      "ai_tool": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Company Knowledge Base": {
+      "ai_tool": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Access static information from company website (RAG source)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Root AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "43626b98-2515-45c8-8836-a2ed6d552a92",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "zD8HNCe0GfLXr6m9",
+  "tags": []
+}

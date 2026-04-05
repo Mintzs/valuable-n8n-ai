@@ -1,0 +1,461 @@
+{
+  "name": "LinkedIn Post Generator With Style Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        0
+      ],
+      "id": "a50aa8b1-bfb3-4a3b-8c76-92c2b15e2ed6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"hook\": \"Here's what I learned from running my $12M+ SaaS startup.\",\n\t\"post intention\": \"Create an education storytelling post that focuses on important life lessons: people skills matter, connections over skills, etc.\",\n    \"call to action\": \"Start putting yourself out there, build in public, and push past doubt.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        288
+      ],
+      "id": "d4c54177-cb4e-4bee-8aa5-a8eb14dd17bd",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -128
+      ],
+      "id": "4102af60-4cec-4fed-8f03-61133a601133",
+      "name": "Create a post",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Using the system prompt, generate me LinkedIn post ideas and structure following my niche/background: ",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "<role>\nYou are a LinkedIn Viral Strategy Expert. You do not write full posts. Your job is to engineer the \"Skeleton\" of a high-performing post based on a raw topic idea. You understand the psychology of the \"scroll-stop,\" \"value retention,\" and \"conversion.\"\n</role>\n\n<objective>\nAnalyze the provided [Topic/Context] and output a structured content strategy.\n</objective>\n\n<framework>\n1.  **The Hook (Stop the Scroll):**\n    *   Create from 3 possible theme (Controversial, Story-based, or Value-tease).\n    *   Must be under 15 words.\n    *   Must break a pattern or state a bold truth.\n\n2.  **The Meat (Intention & Description):**\n    *   Outline the *exact* value the reader will get.\n    *   Structure the flow: \"Agitate pain\" -> \"Present solution\" -> \"Proof/Example\".\n    *   Do not write the sentences; write the *instruction* for the writer (e.g., \"Tell a story about X, then transition to lesson Y\").\n\n3.  **The CTA (Engagement Driver):**\n    *   Create a \"Soft Ask\" (Comment below) and a \"Hard Ask\" (DM me / Link in bio).\n    *   Ensure it aligns with the hook.\n</framework>\n\n<output_format>\nOutput strictly as JSON following the example in the output parser. Make sure that everytime you generate ideas, you generate only for 1 POST: 1 HOOK, 1 CONTENT/INTENTION, 1 CTA"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4a402b64-f367-4b96-88a5-7a7caea0bd2c",
+      "name": "Content Creation Brainstormer"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Following the system instructions, use the following information to construct the LinkedIn post in the same style and structure as the posts in the \"Ideal Posts\" Google Sheet you have access to: \n\nHook: {{ $json.output.hook }}\nPost content / intention: {{ $json.output['post intention'] }}\nCTA: {{ $json.output['call to action'] }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "<role>\nYou are an expert Ghostwriter. You have been trained on the writing style, tone, and formatting of the user. Your goal is to write a post that is indistinguishable from their previous best-performing content.\n</role>\n\n<inputs>\n1.  **Strategy:** Create a post using the outline and information given in the prompt.\n2.  **Style Reference:** Using the Google Sheet tool you have that consists of a database of \"ideal posts\", you need to analyze their style, tone, and structure, and use it as inspiration to create the user's post.\n</inputs>\n\n<style_analysis_instructions>\nBefore writing, analyze the \"Style Reference\" data from the ideal posts Google sheet:\n*   **Sentence Length:** Do they use punchy, one-line paragraphs? Or dense blocks?\n*   **Formatting:** Do they use bullet points (•, -, or emojis)? Do they use bold text?\n*   **Tone:** Is it humble, arrogant, educational, or vulnerable?\n*   **Vocabulary:** Simple (Grade 5) or technical?\n</style_analysis_instructions>\n\n<writing_task>\nWrite a complete LinkedIn post using the <hook_options> (pick the best one) and <content_outline> provided by the Strategist.\n*   Apply the user's formatting habits strictly.\n*   Ensure whitespace is optimized for mobile (mobile-first formatting).\n*   End with the <selected_cta>.\n</writing_task>\n\n<output_format>\nReturn the final post text only, ready to copy-paste.\n</output_format>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        576,
+        0
+      ],
+      "id": "d2f8b450-1725-4989-a329-53df5a76d827",
+      "name": "Post Drafter"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        288
+      ],
+      "id": "0284016e-a3d3-405e-a991-72f4c31beaea",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        288
+      ],
+      "id": "25d10ade-d2c1-4630-8b80-eae402aeb961",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        512,
+        288
+      ],
+      "id": "f93ab597-edcd-4ff3-9bb4-af92a564f0f5",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        688,
+        288
+      ],
+      "id": "00178824-6710-417c-b17d-96ef8a16fe9e",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Activate LinkedIn \"Post\" node if you'd like the workflow to automatically post the drafts instead of storing them in the Google Sheet.",
+        "height": 288,
+        "width": 368,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "bcde4933-6349-41da-813f-eea8f158fab1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Brainstorm & Draft the LinkedIn Posts",
+        "height": 560,
+        "width": 1280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "3e1e1b81-339a-4881-b08a-88e0680b2c64",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Adds the final post draft into your Google Sheet\n",
+        "height": 288,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "c0670e99-bd5b-4991-800c-57e9bde7e4d8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "The google sheet contains examples of linkedin posts which style, structure, and tone is preferred by the user. Use this tool to read and analyze the mentioned elements of each post so you understand the required format, tonality, and style to write the LinkedIn post draft in.",
+        "documentId": {
+          "__rl": true,
+          "value": "1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        288
+      ],
+      "id": "a916c716-99c4-422a-89ee-d91bbdb79b4e",
+      "name": "\"Ideal Posts\" Google Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 182168542,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1jfpYlSJK0eSF5OM5qrGIda_vxYG8kBLzGTWrDNfWIlI/edit#gid=182168542"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Post": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "Post"
+          ],
+          "schema": [
+            {
+              "id": "Post",
+              "displayName": "Post",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1392,
+        224
+      ],
+      "id": "34ddf22f-4fab-44ee-9f83-69448d7ab3bf",
+      "name": "Add post draft to sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- The AI agent understands your niche and background and generates relevant post ideas, creating outlines like the hook, content / post intention, and call-to-action.\n- A second agent will then take this outline and create a fully structured draft post, copying the style, tone, and structure of the posts in your \"Ideal posts\" Google Sheet that it has access to. \n- The draft is then stored in your output Google Sheet\n- You can optionally activate the LinkedIn node with your credentials to also allow the AI agent to post the draft immediately to your LinkedIn account.\n",
+        "height": 224,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "1aa082d9-308b-4a79-8f4f-92a2499c067a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration \n- Credentials needed: Gemini (or any AI model API) & Google Sheets OAuth2 (Optionally, LinkedIn as well)\n- Select how often you want the workflow to run in the Schedule Trigger node.\n- Edit \"Content Creation Brainstormer\" node's user prompt to include your niche and background so the AI can generate more relevant posts.\n- Configure both Google Sheet nodes with your \"Ideal posts\" sheet (a database of posts with your preferred style so the AI can take inspiration from) and the sheet containing all your final drafts.\n- (OPTIONALLY) Configure & activate the LinkedIn node with your credentials so the AI can immediately post its drafts on your account.",
+        "height": 272,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        416,
+        -400
+      ],
+      "typeVersion": 1,
+      "id": "6e56a1ae-316a-4dad-ac2e-8fd697189842",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Content Creation Brainstormer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Content Creation Brainstormer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creation Brainstormer": {
+      "main": [
+        [
+          {
+            "node": "Post Drafter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Drafter": {
+      "main": [
+        [
+          {
+            "node": "Add post draft to sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creation Brainstormer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creation Brainstormer",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Post Drafter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Post Drafter",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "\"Ideal Posts\" Google Sheet": {
+      "ai_tool": [
+        [
+          {
+            "node": "Post Drafter",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add post draft to sheet": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c32fb021-9dec-4819-a85f-add6c3d5cee5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "tA5B2vvtj7inbvR7",
+  "tags": []
+}

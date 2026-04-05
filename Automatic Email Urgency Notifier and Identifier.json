@@ -1,0 +1,606 @@
+{
+  "name": "Automatic Email Urgency Notifier and Identifier",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "022a3e10-d17e-43a0-868a-1b3fc861e09d",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ad26912f-17ef-4bfb-986d-a8e16f013ff5",
+              "leftValue": "={{ $json.output['urgency score'] }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "0509015e-d0df-4d37-8b0b-dfbd9112c825",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "select": "user",
+        "user": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        },
+        "text": "=NEW EMAIL WITH URGENCY LEVEL: {{ $json.output['urgency score'] }}\n\nabout: {{ $json.output['subject line'] }}\n\nUrgent email content: {{ $json.output['content summary'] }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        -288
+      ],
+      "id": "215ae272-8d5b-4393-a2dd-a75dc4d69744",
+      "name": "Send a message",
+      "webhookId": "8004dce7-0f5f-4ae6-bb4c-ffac5abba956",
+      "credentials": {
+        "slackApi": {
+          "id": "hJqsW9Dt31kgvVcq",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "=Urgency Level: {{ $json.output['urgency score'] }}\n\nAbout {{ $json.output['subject line'] }}\n\nContent summary: {{ $json.output['content summary'] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        -128
+      ],
+      "id": "378c9576-f699-405f-b4ad-082b7bf74341",
+      "name": "Send a text message",
+      "webhookId": "85e32eab-0b1f-4d1c-9ee7-7512fe76d99b"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output['draft content'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1936,
+        -16
+      ],
+      "id": "50c76d7b-9363-443f-bb98-53f266e9c20a",
+      "name": "Create a draft",
+      "webhookId": "39edf583-1ff1-4d08-8dd9-640b11f35b4d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        304
+      ],
+      "id": "a7178ea7-c9e7-45fc-ac9d-5c2e6aed9e60",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        256,
+        304
+      ],
+      "id": "400fb5d1-f802-4a62-a1dc-71d7c026bf37",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"sender\": \"something@gmail.com\",\n\t\"subject line\": \"Marketing email\",\n    \"content summary\": \"Jack from ___ company is asking you to try out his new website\",\n    \"date\": \"25th February, 18:00\",\n    \"urgency score\": 1\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        304
+      ],
+      "id": "eafb3bb9-96fe-4ecb-87df-9c4c3ff3ee40",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        496
+      ],
+      "id": "71c2d39e-d9a9-4807-ae02-e44714ebfebb",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Sender: {{ $json.from }}\nDate: {{ $json.date }}\nSubject: {{ $json.subject }}\nBody: {{ $json.text }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "<role>\nYou are an elite Email Triage Intelligence Agent. Your sole purpose is to analyze incoming emails with extreme precision to determine their urgency and intent. You act as the first line of defense for a busy professional, ensuring they never miss a critical communication while filtering out noise.\n</role>\n\n<objective>\nAnalyze the provided email content (subject line, body text, sender, and timestamp) and output a structured JSON object containing a comprehensive summary, sender details, and a calculated urgency score.\n</objective>\n\n<analysis_guidelines>\n1.  **Urgency Scoring (0-10 Scale):**\n    *   **10 (Critical/Emergency):** Immediate financial loss, server downtime, legal threats, C-level executive direct requests, family emergencies, or missed deadlines occurring *today*.\n    *   **8-9 (High Priority):** Time-sensitive job offers, important client complaints, project blockers, or meetings scheduling for the next 24 hours.\n    *   **5-7 (Medium Priority):** Standard business communication, non-urgent questions, newsletters from important tools, or meetings next week.\n    *   **0-4 (Low Priority/Noise):** Marketing newsletters, cold sales outreach, automated receipts, social media notifications, or spam.\n\n2.  **Intent Recognition:**\n    *   Identify *why* the email was sent (e.g., \"Requesting a meeting,\" \"Delivering an invoice,\" \"Reporting a bug,\" \"Cold sales pitch\").\n\n3.  **Summary Generation:**\n    *   Create a concise but detailed summary. Do not just say \"This is an email about X.\" Instead, say \"Sender is requesting approval for the Q3 budget by 5 PM today.\"\n</analysis_guidelines>\n\n<output_format>\nYou must strictly output ONLY valid JSON. Do not include markdown code blocks (```json), explanations, or conversational filler. The output must follow this exact schema:\n\n{\n  \"analysis_timestamp\": \"ISO 8601 format of current time\",\n  \"email_data\": {\n    \"sender_address\": \"extracted_sender_email\",\n    \"sender_name\": \"extracted_sender_name_or_unknown\",\n    \"received_at\": \"extracted_email_timestamp\",\n    \"subject\": \"original_subject_line\"\n  },\n  \"intelligence\": {\n    \"intent\": \"Brief 3-5 word description of intent\",\n    \"summary\": \"One sentence comprehensive summary including key action items or deadlines.\",\n    \"urgency_score\": [Integer between 0-10],\n    \"urgency_reason\": \"Brief explanation of why this score was assigned (e.g., 'Contains deadline today', 'Cold sales spam').\"\n  }\n}\n</output_format>\n\n<rules>\n- If the email is a forwarded message, analyze the *original* content, not the forwarding wrapper.\n- If the email is clearly automated marketing or spam, automatically assign a score of 0-2.\n- Be conservative with scores 9-10. Only reserve these for genuine \"drop everything\" moments.\n- Ensure the JSON is valid and parsable.\n</rules>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "13531261-2010-407f-a654-ea945c046f55",
+      "name": "Email Checker & Judge"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        240
+      ],
+      "id": "c44d62ce-bb07-4034-bb12-710edf4244db",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        240
+      ],
+      "id": "9499eb86-2a05-4a25-b7c5-d40594223afa",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"subject\": \"Example Subject Line for Draft\",\n\t\"draft content\": \"Dear James, ...\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        240
+      ],
+      "id": "2d48c78e-83a5-4797-99f2-1f0ccf1572a1",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        448
+      ],
+      "id": "cc1807f5-e6b5-4aec-b712-d775fe40389e",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": [
+          "IMPORTANT"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        256
+      ],
+      "id": "47a52d9a-248d-45e2-8f19-1c80f7d0e00f",
+      "name": "Label as Important",
+      "webhookId": "906046e4-e845-4af0-a568-5cf55d9ed733",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "chauvinjtravis@gmail.com",
+        "subject": "={{ $('Email Checker & Judge').item.json.output['subject line'] }}",
+        "emailType": "text",
+        "message": "=URGENCY SCORE: {{ $('Email Checker & Judge').item.json.output['urgency score'] }}\n\nSummary: {{ $('Email Checker & Judge').item.json.output['content summary'] }}\n\nSent on {{ $('Email Checker & Judge').item.json.output.date }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        96
+      ],
+      "id": "ed9e745d-ddf5-4fc1-ada4-46240330d105",
+      "name": "Notifies your other email addresses of the message",
+      "webhookId": "287e2a2a-fb2c-4f28-b67f-cc5c2906e775",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Checks incoming emails, scrapes the information & creates a summary, calculates a final \"urgency\" score of the email.",
+        "height": 752,
+        "width": 784,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "5c7968a6-e8e6-40cb-b4eb-8b0c50c295c1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### If \"urgent\", email gets labeled as Important on Gmail and notifies you on Slack, Telegram, and your other email addresses of its content and summary.",
+        "height": 816,
+        "width": 384,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        896,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "8dd1e3cc-9ed7-4ee3-a109-c2a210e3c32e",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The following email has been flagged as \"urgent\" and \"important\" by another AI agent email checker.\n\nYou are the best professional email replier/drafter, your goal is to create a draft response to this urgency email using a professional tone that is sufficient for the task at hand. You will then output the draft in a json format with the following elements: Subject line & actual email content. Ensure you use standard professional emailing conventions.\n\nHere are the contents of the email:\nSender:{{ $('Gmail Trigger').item.json.headers.from }}\nSubject Line:{{ $('Gmail Trigger').item.json.headers.subject }}\nReal Email Content:{{ $('Gmail Trigger').item.json.text }}\nSummarized Content by AI agent checker:{{ $('Email Checker & Judge').item.json.output['content summary'] }} ",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1472,
+        -16
+      ],
+      "id": "ec8b9951-d13a-4d54-bac4-bd6dc7c02c16",
+      "name": "Email Reply Draft Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Creates a potential reply with subject line and saves it in your drafts for you to use or work on",
+        "height": 736,
+        "width": 800,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1376,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "329c34b2-1a7c-4e35-a950-067831ffc14a",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: Gmail, Gemini (or any AI model preference), Slack, Telegram, & any other social media platforms you'd like to use to notify you of an urgent email.\n- Configure the \"Notifies your other email..\" Gmail node to send a notification to your desired email address.\n- Edit the Telegram, Slack, & any other social media nodes with the correct receiver destination to notify the urgent email to. (like Telegram Chat ID and Slack User)",
+        "height": 192,
+        "width": 736,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "d3dea2f4-d2d0-4bc1-89fb-8439c9fcb75b",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {
+    "Email Checker & Judge": [
+      {
+        "json": {
+          "output": {
+            "sender": "Nate",
+            "subject line": "This will save you money (prices increasing on Saturday)",
+            "content summary": "The sender, Nate, is promoting a subscription to 'AI Automation Society Plus,' using an upcoming price increase this Saturday as a deadline to encourage immediate signup at the current rate of $94/month.",
+            "date": "2026-01-28T13:41:21.000Z",
+            "urgency score": 7
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Email Checker & Judge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Label as Important",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notifies your other email addresses of the message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Reply Draft Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Checker & Judge",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Checker & Judge",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Checker & Judge",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Checker & Judge": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Reply Draft Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Reply Draft Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Email Reply Draft Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Reply Draft Agent": {
+      "main": [
+        [
+          {
+            "node": "Create a draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cd447a4a-fd09-4bf1-86a5-89eed12ec3b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "htx0xF6SQ6EeZJ0h",
+  "tags": []
+}

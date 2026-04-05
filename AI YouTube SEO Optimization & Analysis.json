@@ -1,0 +1,470 @@
+{
+  "name": "AI YouTube SEO Optimization & Analysis",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "5f1eae10-5270-4e99-8627-597e3451c82c",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.analysis_status }}",
+              "rightValue": "Waiting"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "92110e84-9b9b-4399-afe1-ca723d315b7e",
+      "name": "Checks Video ID's status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        848,
+        528
+      ],
+      "typeVersion": 2.2,
+      "notes": "Filters rows to process only videos with 'Pending' status"
+    },
+    {
+      "parameters": {},
+      "id": "8b091e5b-36d1-4f00-bf91-0639b0e6ec13",
+      "name": "Picks only 1 video",
+      "type": "n8n-nodes-base.limit",
+      "position": [
+        1088,
+        512
+      ],
+      "typeVersion": 1,
+      "notes": "Limits processing to 1 item at a time to prevent API overload"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "get",
+        "videoId": "={{ $('Get Video ID').item.json.youtube_id }}",
+        "options": {}
+      },
+      "id": "a00e96ec-65c8-4aae-856a-97bae3018ed6",
+      "name": "Get YouTube Video Details",
+      "type": "n8n-nodes-base.youTube",
+      "position": [
+        1312,
+        512
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "fDmuUwig1AQ0Mqy8",
+          "name": "YouTube account"
+        }
+      },
+      "notes": "Fetches video metadata including title, channel name, and other details"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: Gemini (or any AI model API), YouTube OAuth2, Google Sheets OAuth2, Gmail OAuth2, Supadata API (Free 100 requests/month, no credit card needed).\n\n- Configure the trigger Google Sheet node so that it is connected to your spreadsheet with the following columns that include the YouTube video's ID & the status (either \"Waiting\" or \"Done\"):\n\n\"| youtube_id | analysis_status |\"\n\nIf columns are not exact, you will have to reconfigure the rest of the nodes so it matches with your column's titles.\n- Configure Gmail node with your intended recipient email address.\n- Configure the last Google Sheet node to update your original sheet of YouTube video IDs so that their analysis_status changes from \"Waiting\" > \"Done\"",
+        "height": 336,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "e1cbbec1-5417-43a2-b763-b8e9600809ad",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Workflow triggers every minute (or your own specified time) and looks for youtube video IDs in your spreadsheet that has the status \"Waiting\" (must be exact).\n- It takes the video IDs with that status and uses the YouTube API to get the video's metadata + Supadata's API to get the video transcript.\n- The AI agent then analyzes the given information and creates an in-depth report with summaries + suggested actions for SEO-optimization.\n- The report is then sent via email and the status of the YouTube video's ID is changed from \"Waiting\" > \"Done\"",
+        "height": 240,
+        "width": 656,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1280,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "b77e3d8c-8bb7-461d-9776-55ca4401cd01",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "70b9f863-72e6-439b-ad40-b50658a371f8",
+      "name": "Get Video ID",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "position": [
+        640,
+        528
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "EdlZKlyhLpiK2oom",
+          "name": "Google Sheets Trigger account"
+        }
+      },
+      "notes": "Triggers on new YouTube videos added to spreadsheet. Polls every minute for changes"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2032,
+        752
+      ],
+      "id": "0c44ec69-bea7-4d99-939d-a482b3bcbffd",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        752
+      ],
+      "id": "9f469959-4333-4c87-99f3-c86e8e0a9cc1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew",
+          "mode": "list",
+          "cachedResultName": "YouTube Analysis Automation",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1pZ5nirNMJsWFs5Bg9wY22A0TpLM18tDgZRra_bVigew/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "analysis_status": "Done",
+            "youtube_id": "={{ $('Get Video ID').item.json.youtube_id }}"
+          },
+          "matchingColumns": [
+            "youtube_id"
+          ],
+          "schema": [
+            {
+              "id": "youtube_id",
+              "displayName": "youtube_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "analysis_status",
+              "displayName": "analysis_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a2104ce8-9065-4686-a1f3-74ddcd0d638c",
+      "name": "Update Status on Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        2544,
+        640
+      ],
+      "typeVersion": 4.5,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KDVMfx6En2GXmqbr",
+          "name": "Google Sheets account"
+        }
+      },
+      "notes": "Updates video status to 'Mail Sent' to prevent duplicate processing"
+    },
+    {
+      "parameters": {
+        "operation": "getTranscript",
+        "videoUrl": "=https://youtu.be/{{ $('Get Video ID').item.json.youtube_id }}",
+        "text": true
+      },
+      "type": "n8n-nodes-supadata.supadata",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        512
+      ],
+      "id": "adde6eb9-287a-4654-86f3-8d2e527681bc",
+      "name": "Get transcript",
+      "credentials": {
+        "supadataApi": {
+          "id": "DZ4FYCrWSJa5s3w2",
+          "name": "Supadata account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "something@gmail.com",
+        "subject": "=SEO Analysis & Optimization for {{ $('Get YouTube Video Details').item.json.snippet.title }}",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "id": "22cbbe34-2fe5-4392-96d9-34cda4ea9a8d",
+      "name": "Send to Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        2544,
+        416
+      ],
+      "webhookId": "90b8f9ad-4226-42a0-971b-7fa9f5f190bd",
+      "typeVersion": 2.1,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      },
+      "notes": "Sends formatted analysis report via Gmail. Update SENDER_EMAIL_ADDRESS with actual recipient"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=The youtube video you will need to analyze is the following (to understand the context and purpose of the video, you can analyze the provided transcript)\n\nTitle:{{ $('Get YouTube Video Details').item.json.snippet.title }}\nDescription:{{ $('Get YouTube Video Details').item.json.snippet.description }}\nTags (if any): {{ $('Get YouTube Video Details').item.json.snippet.tags }}\n\nFull Transcript: {{ $json.content }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=# ROLE & IDENTITY\nYou are the YouTube SEO Architect. Your goal is to ensure a video's Metadata (Title, Description, Tags) perfectly aligns with its actual Content Topic to maximize search ranking and user relevance.\n\n# ANALYSIS PROTOCOL\nWhen provided with the Video Topic / transcript and current Metadata, analyze:\n1.  **Keyword Alignment:** Does the Title accurately reflect the main Content Topic?\n2.  **Front-Loading:** Is the primary keyword for this Topic placed at the start of the Title?\n3.  **Semantic Completeness:** Does the Description include related keywords natural to this Topic?\n4.  **Click Incentives:** Does the Title create curiosity while remaining relevant to the Topic?\n\n# OUTPUT RULES\n- Your output will be sent via EMAIL. Do not use tables or complex markdown.\n- Use clear headers, bullet points, and concise text.\n- Tone: Expert, actionable, and direct.\n\n# REQUIRED OUTPUT STRUCTURE\n\n## 1. SEO SCORE CARD\n**Overall Score:** [Integer 0-100]\n**Status:** [Critical / Warning / Optimized]\n\n**Summary:**\n[1-2 sentences summarizing how well the Metadata matches the Content Topic.]\n\n## 2. AUDIT FINDINGS\n*   **Topic Alignment:** [Pass/Fail] - [Does the title promise what the content delivers?]\n*   **Keyword Placement:** [Pass/Fail] - [Is the main topic keyword at the start of the title?]\n*   **Description Quality:** [Pass/Fail] - [Does the description accurately summarize the topic for search?]\n\n## 3. YOUR \"FIX LIST\" (Top 3 Priorities)\n1.  [Actionable Instruction 1]\n2.  [Actionable Instruction 2]\n3.  [Actionable Instruction 3]\n\n## 4. OPTIMIZED ASSETS (Copy-Paste Ready)\n\n**Title Options:**\n*   **Option A (Search Focus):** [Title maximized for Topic keywords]\n*   **Option B (Viral Focus):** [Title maximized for curiosity]\n*   **Option C (Balanced):** [Title balancing both]\n\n**Optimized Description Hook:**\n[Rewritten first 3 lines of description ensuring the Topic is clearly stated]\n\n**Missing Keywords to Add:**\n[Comma-separated list of related keywords that fit this Topic]\n\n## 5. STRATEGIC TIP\n[One final tip to improve the video's discoverability based on its specific Topic]\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1984,
+        512
+      ],
+      "id": "92e42001-0367-4b03-af35-a20af3136603",
+      "name": "SEO Agent"
+    },
+    {
+      "parameters": {
+        "content": "## Fetches the YouTube video's ID and scrapes its metdata + transcript",
+        "height": 368,
+        "width": 1168,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "d49123c4-d4fb-46eb-8b90-a9623b3e0bf5",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## The data & transcript is fed into the AI agent to analyze and create a detailed report and suggestions for SEO optimization",
+        "height": 592,
+        "width": 1072,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1776,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "f4753561-1ac6-4e5c-852f-d2439e544f2a",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Checks Video ID's status": {
+      "main": [
+        [
+          {
+            "node": "Picks only 1 video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Picks only 1 video": {
+      "main": [
+        [
+          {
+            "node": "Get YouTube Video Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Video ID": {
+      "main": [
+        [
+          {
+            "node": "Checks Video ID's status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get YouTube Video Details": {
+      "main": [
+        [
+          {
+            "node": "Get transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get transcript": {
+      "main": [
+        [
+          {
+            "node": "SEO Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEO Agent": {
+      "main": [
+        [
+          {
+            "node": "Update Status on Google Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send to Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e534f5ad-1029-4660-9d88-226ce11ab633",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "cv3LXXrBs4ja2561",
+  "tags": []
+}

@@ -1,0 +1,294 @@
+{
+  "name": "AI Resume Screening & Job Compatibility Evaluation",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "https://drive.google.com/file/d/1Bo1Qm5xBiqSUzWlzwL0sou9arT8kLUj3/view?usp=sharing",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        48,
+        0
+      ],
+      "id": "89c0286f-1bc9-4b78-9953-c36327e9c1eb",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aKn8nu7MaX80q0gH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "e09c2c22-e235-4f80-a6f0-638c209008fe",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using the following scraped information from my resume:  {{ $json.text }}\n\nPlease give me a compatibility rating for the following job decription following the clear instructions in your system prompt:\n{{ $('Google Sheets Trigger').item.json['Job Description'] }}\n\nThen, output ONLY the rating or confidence score itself, no other elements.",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "# SYSTEM ROLE\nYou are the **Lead Recruitment Analyst AI**. Your sole function is to calculate a precise quantitative compatibility score between a candidate and a job opening. You do not provide feedback, summaries, or justifications. You are a calculator.\n\n# INPUT DATA\nYou will receive two text inputs:\n1. JOB_DESCRIPTION: The requirements for the role, coming with the fully copy and pasted job description from the job listing.\n2. RESUME_TEXT: The candidate's resume content.\n\n# SCORING PROTOCOL\nPerform the following analysis silently. Do not output these steps:\n\n1.  **Hard Skills Match (40%):** Scan for exact matches of \"Must-Have\" technical skills.\n2.  **Experience Relevance (35%):** Evaluate role alignment, seniority, and industry background.\n3.  **Soft Skills & Quality (15%):** Assess communication clarity and leadership indicators.\n4.  **Education/Certifications (10%):** Check against academic requirements.\n\n**Calculation Logic:**\n-   Assign a 0-100 value to each component above.\n-   Calculate the weighted average.\n-   Round to the nearest whole integer.\n\n# CRITICAL CONSTRAINTS\n-   **No Hallucination:** Do not infer skills that are not explicitly written. If a skill is vague, score it lower.\n-   **No Bias:** Score purely based on the text provided.\n-   **Output Purity:** Do not output the word \"Score.\" Do not output labels. Do not output explanations.\n\n# OUTPUT FORMAT\nYour response must contain **ONLY** the final integer (0-100).\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "6c1196c1-d9b0-4b51-8d84-923f05339a8a",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "15qO2jgW1R3bP4utusfkYrAB_AoIXggFbKJI52ie0i2A",
+          "mode": "list",
+          "cachedResultName": "n8n demo",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15qO2jgW1R3bP4utusfkYrAB_AoIXggFbKJI52ie0i2A/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 454546328,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15qO2jgW1R3bP4utusfkYrAB_AoIXggFbKJI52ie0i2A/edit#gid=454546328"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "b465284c-758b-475e-a2d4-1e1f28cb09c2",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "EdlZKlyhLpiK2oom",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        432,
+        272
+      ],
+      "id": "6ef2ae3f-b7ff-460d-bf46-22fa4228e2e6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        272
+      ],
+      "id": "76a0f90d-5027-4a78-9982-eca7fa92ef9e",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "subject": "Job Match Rating ",
+        "emailType": "text",
+        "message": "=Your rating for the following job listing:  {{ $('Google Sheets Trigger').item.json['Job Description'] }}\n\nis {{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "dc6cefab-a329-48a0-b57a-2b4c620af6ef",
+      "name": "Send a message",
+      "webhookId": "d3ba81af-0cce-4806-ae19-b13f243df0d9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Enter a new job listing description in a Google Sheet\n- Workflow triggers when that new row is added, and starts scraping the content of your Resume File (on Gdrive) and feeds it into the AI model.\n- AI then performs calculations of compatibility and matching between your resume & the job listing using various factors.\n- The final result and rating will be sent to you via Email",
+        "width": 944,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "9ec2d227-0cad-45a8-bec8-be68e5cd40b2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration Steps\n- Credentials needed: Google OAuth2 Credentials (for Google Sheets, Google Drive, and Gmail) & Gemini or any AI model.\n\n- Configure Google Sheet node so it links to the correct spreadsheet you will be updating job descriptions with.\n\n- Add your resume on Google Drive and paste its Gdrive sharing link into the correct input within the Google Drive \"Download File\" node.\n\n- Personalize the Gmail node with the account you'd like to send the final output to (your email).",
+        "height": 400,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1248,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "b19d7735-d36e-4e7a-bc31-cae2a94227da",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Prompt Engineered System Instructions to ensure AI calculates accurate ratings and evaluations.",
+        "height": 272,
+        "width": 448,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "df8c21df-fd49-445f-a1e4-56172176b2db",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "abd058bb-b59a-4c5a-915e-a6a12377d778",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "lySZzS9h8lsC1AeI",
+  "tags": []
+}

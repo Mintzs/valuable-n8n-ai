@@ -1,0 +1,599 @@
+{
+  "name": "AI Meeting -> Action Plan Converter",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyHour"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1wvuz4w2eR-nLOOdfBD0B82yNIq8SBFQw",
+          "mode": "list",
+          "cachedResultName": "About Us",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1wvuz4w2eR-nLOOdfBD0B82yNIq8SBFQw"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "78814817-a625-46dd-91fc-83af40924e97",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aKn8nu7MaX80q0gH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7d344276-c1e8-4539-ae81-a43105448510",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "aKn8nu7MaX80q0gH",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -272
+      ],
+      "id": "b900fd0e-68e7-4728-9698-b0d5aa5c77e5",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "resource": "speech",
+        "operation": "speechToText",
+        "additionalOptions": {},
+        "requestOptions": {}
+      },
+      "type": "@elevenlabs/n8n-nodes-elevenlabs.elevenLabs",
+      "typeVersion": 1,
+      "position": [
+        976,
+        224
+      ],
+      "id": "891aa342-ea61-483b-bbac-80e549c54ac2",
+      "name": "Transcribe audio or video",
+      "credentials": {
+        "elevenLabsApi": {
+          "id": "wehQrsoDOIxlcdKJ",
+          "name": "ElevenLabs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "something@gmail.com",
+        "subject": "Recent Meeting Action Plan & Summary",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1568,
+        -272
+      ],
+      "id": "e37c31d8-26a5-488c-a19c-101164604293",
+      "name": "Send a message",
+      "webhookId": "3395a53f-e60d-4770-8fcf-cede50912cb5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "something@gmail.com",
+        "subject": "Recent Meeting Action Plan & Summary",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1744,
+        224
+      ],
+      "id": "22e65772-0952-4963-9fe1-9e416266c0b4",
+      "name": "Send a message1",
+      "webhookId": "3395a53f-e60d-4770-8fcf-cede50912cb5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        992,
+        -80
+      ],
+      "id": "5b16b09f-f27b-428d-be24-b650496dd966",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        432
+      ],
+      "id": "754887d6-1620-4235-9ee0-94cacfb871fa",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        -80
+      ],
+      "id": "60a1316e-215a-4d8e-b319-5db56e27f326",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        432
+      ],
+      "id": "caa72739-aa6b-4e3b-876b-ad8e9920b88a",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "yzhpW7GuVpaN6QhC",
+          "name": "nonn8n"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the following meeting notes / file:\n\n{{ $json.text }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Meeting Action Plan Agent designed to extract actionable insights from meeting transcripts and notes, then structure them into a clear, executable planner for founders and teams.\n\n**Your Task:**\nAnalyze the provided meeting content (transcript or notes) and generate a comprehensive, structured action plan report.\n\n**Input:**\n- Meeting transcript (audio/video transcription)\n- OR meeting notes (PDF/document text)\n\n**Output Structure:**\n\n# Meeting Action Plan\n**Meeting Title:** decided by you based on full context of the meeting   \n**Attendees:** list or include only if mentioned or given by the notes / transcript\n\n---\n\n## 📋 Executive Summary\n[2-3 sentence overview of meeting purpose and key outcomes]\n\n---\n\n## ✅ Key Decisions Made\n[List all final decisions, commitments, or approvals]\n- **Decision:** [What was decided]\n  - **Context:** [Why/background]\n  - **Owner:** [Who is responsible]\n  - **Impact:** [What this affects]\n\n---\n\n## ❓ Open Questions & Concerns\n[Unresolved issues, blockers, or items requiring follow-up]\n- **Question/Concern:** [Specific issue]\n  - **Raised by:** [Person/team]\n  - **Next step:** [How to resolve]\n  - **Deadline:** [If mentioned]\n\n---\n\n## 🎯 Action Items & Tasks\n[All tasks, assignments, and deliverables mentioned]\n| Task | Owner | Priority | Deadline | Status | Notes |\n|------|-------|----------|----------|--------|-------|\n| [Task description] | [Name] | High/Med/Low | [Date or \"TBD\"] | Not Started | [Context] |\n\n---\n\n## 📅 Timeline & Milestones\n[Key dates, deadlines, and project milestones discussed]\n- **[Date/Week]:** [Milestone or deadline]\n\n---\n\n## 💡 Ideas & Suggestions\n[Brainstormed ideas, suggestions, or strategic thoughts that weren't formalized into decisions]\n- [Idea with brief context]\n\n---\n\n## 🔄 Follow-Up Required\n[Items requiring additional meetings, research, or external input]\n- **Item:** [What needs follow-up]\n  - **Why:** [Reason]\n  - **Who:** [Responsible party]\n  - **When:** [Timeline]\n\n---\n\n## 📎 References & Resources\n[Documents, links, tools, or external resources mentioned]\n- [Resource name/link with context]\n\n---\n\n**Extraction Guidelines:**\n1. **Be comprehensive:** Capture all decisions, tasks, and concerns—don't filter based on importance judgments\n2. **Attribute clearly:** Always note who said what, who owns what\n3. **Infer priorities:** If priority isn't explicitly stated, infer from urgency language (ASAP = High, \"eventually\" = Low)\n4. **Default deadlines:** If no deadline mentioned, mark as \"TBD\" or \"Not specified\"\n5. **Distinguish:** Separate firm decisions from ideas/suggestions\n6. **Flag ambiguity:** If something is unclear, note it in the \"Open Questions\" section\n7. **Use exact language:** For decisions and action items, quote or closely paraphrase the actual meeting language\n8. **Status inference:** Mark all tasks as \"Not Started\" unless transcript indicates completion\n\n**Tone:** Professional, concise, action-oriented. Optimize for quick scanning and immediate execution.\n\n**Output format:** Clean markdown suitable for email delivery via Gmail.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1136,
+        -272
+      ],
+      "id": "1422d0a5-665d-402b-93cb-2f707451ac4e",
+      "name": "Meeting Notes -> Action AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Here is the full transcript for the meeting:\n{{ $json.text }}\n",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "You are a Meeting Action Plan Agent designed to extract actionable insights from meeting transcripts and notes, then structure them into a clear, executable planner for founders and teams.\n\n**Your Task:**\nAnalyze the provided meeting content (transcript or notes) and generate a comprehensive, structured action plan report.\n\n**Input:**\n- Meeting transcript (audio/video transcription)\n- OR meeting notes (PDF/document text)\n\n**Output Structure:**\n\n# Meeting Action Plan\n**Meeting Title:** decided by you based on full context of the meeting   \n**Attendees:** list or include only if mentioned or given by the notes / transcript\n\n---\n\n## 📋 Executive Summary\n[2-3 sentence overview of meeting purpose and key outcomes]\n\n---\n\n## ✅ Key Decisions Made\n[List all final decisions, commitments, or approvals]\n- **Decision:** [What was decided]\n  - **Context:** [Why/background]\n  - **Owner:** [Who is responsible]\n  - **Impact:** [What this affects]\n\n---\n\n## ❓ Open Questions & Concerns\n[Unresolved issues, blockers, or items requiring follow-up]\n- **Question/Concern:** [Specific issue]\n  - **Raised by:** [Person/team]\n  - **Next step:** [How to resolve]\n  - **Deadline:** [If mentioned]\n\n---\n\n## 🎯 Action Items & Tasks\n[All tasks, assignments, and deliverables mentioned]\n| Task | Owner | Priority | Deadline | Status | Notes |\n|------|-------|----------|----------|--------|-------|\n| [Task description] | [Name] | High/Med/Low | [Date or \"TBD\"] | Not Started | [Context] |\n\n---\n\n## 📅 Timeline & Milestones\n[Key dates, deadlines, and project milestones discussed]\n- **[Date/Week]:** [Milestone or deadline]\n\n---\n\n## 💡 Ideas & Suggestions\n[Brainstormed ideas, suggestions, or strategic thoughts that weren't formalized into decisions]\n- [Idea with brief context]\n\n---\n\n## 🔄 Follow-Up Required\n[Items requiring additional meetings, research, or external input]\n- **Item:** [What needs follow-up]\n  - **Why:** [Reason]\n  - **Who:** [Responsible party]\n  - **When:** [Timeline]\n\n---\n\n## 📎 References & Resources\n[Documents, links, tools, or external resources mentioned]\n- [Resource name/link with context]\n\n---\n\n**Extraction Guidelines:**\n1. **Be comprehensive:** Capture all decisions, tasks, and concerns—don't filter based on importance judgments\n2. **Attribute clearly:** Always note who said what, who owns what\n3. **Infer priorities:** If priority isn't explicitly stated, infer from urgency language (ASAP = High, \"eventually\" = Low)\n4. **Default deadlines:** If no deadline mentioned, mark as \"TBD\" or \"Not specified\"\n5. **Distinguish:** Separate firm decisions from ideas/suggestions\n6. **Flag ambiguity:** If something is unclear, note it in the \"Open Questions\" section\n7. **Use exact language:** For decisions and action items, quote or closely paraphrase the actual meeting language\n8. **Status inference:** Mark all tasks as \"Not Started\" unless transcript indicates completion\n\n**Tone:** Professional, concise, action-oriented. Optimize for quick scanning and immediate execution.\n\n**Output format:** Clean markdown suitable for email delivery via Gmail.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1312,
+        224
+      ],
+      "id": "25a474d8-e97d-48ec-b067-f15d2f3162d5",
+      "name": "Meeting Transcript -> Action AI Agent1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6d5e29e-31cd-443c-a1b2-fa860b68a228",
+              "leftValue": "={{ $json.mimeType }}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "c36428ba-1270-4583-a48f-98898667abcc",
+              "leftValue": "={{ $json.fullFileExtension }}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d6bea365-24c9-4b4f-8ee2-70d6cc562b35",
+      "name": "If PDF"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a30bb55c-1ef7-4870-ae51-108611c784e4",
+              "leftValue": "={{ $('Download file').item.json.mimeType }}",
+              "rightValue": "mp3",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "4214ad3e-d724-4e3f-8d95-9e25b47026c2",
+              "leftValue": "={{ $('Download file').item.json.mimeType }}",
+              "rightValue": "mp4",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "17844198-6288-4288-a3a2-96afed3e67fb",
+              "leftValue": "={{ $('Download file').item.json.fullFileExtension }}",
+              "rightValue": "mp3",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "e3546300-4d48-4455-ad80-cbe7b4106293",
+              "leftValue": "={{ $('Download file').item.json.fullFileExtension }}",
+              "rightValue": "mp4",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        240
+      ],
+      "id": "d632c17f-ebca-4407-85e7-7889970bb40b",
+      "name": "if Video or Audio"
+    },
+    {
+      "parameters": {
+        "content": "## If Audio or Video File: ElevenLabs creates a transcript and feeds it into the AI agent for analysis",
+        "height": 416,
+        "width": 1568,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "90080ccf-8ac4-41f6-88c0-0537fcffde47",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## If PDF File: contents are extracted and fed into the AI agent for analysis",
+        "height": 416,
+        "width": 1328,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "f5875916-aca5-4a5e-a80f-668e2aa7c802",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Triggers when a new file is added to a GDrive folder and downloads it",
+        "height": 368,
+        "width": 544,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "d5bbca9e-7e73-4576-8dc6-2df99e1d10db",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: ElevenLabs API (10,000 free credits/month), Gemini (or any AI model), Gmail OAuth2, Google Drive OAuth2\n\n- Configure GDrive Trigger node to be overlooking the folder where you will add all your future meeting notes / recordings.\n\n- Edit the output Gmail nodes with your desired receiver email that will receive the final AI report.",
+        "height": 256,
+        "width": 480,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        -672
+      ],
+      "typeVersion": 1,
+      "id": "dc5de39a-263d-4885-89e4-e6b31b7e6330",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Workflow detects when a new file is added into your Gdrive folder.\n- The new file is scanned for its extension: is it either a PDF or a MP3/MP4 file.\n- PDFs have its contents extracted, while audio/video files are transcribed by ElevenLabs.\n- Contents are then fed into the AI agent to create a deep analysis report and action plan, which is sent to you via email.",
+        "height": 256,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1184,
+        -672
+      ],
+      "typeVersion": 1,
+      "id": "145e59ba-48b4-4d69-b813-eb2117e31a79",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "If PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Meeting Notes -> Action AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe audio or video": {
+      "main": [
+        [
+          {
+            "node": "Meeting Transcript -> Action AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting Notes -> Action AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting Transcript -> Action AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting Notes -> Action AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Meeting Transcript -> Action AI Agent1",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Meeting Notes -> Action AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meeting Transcript -> Action AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If PDF": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "if Video or Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if Video or Audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe audio or video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f2cfdda-774a-42e1-b9ab-e8e3dc9a4c10",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "6ex65qXPQcTDhb1t",
+  "tags": []
+}

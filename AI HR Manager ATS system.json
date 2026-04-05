@@ -1,0 +1,251 @@
+{
+  "name": "AI HR Manager ATS system",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Resume_File",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        288
+      ],
+      "id": "c8bffdd8-68d7-407f-b804-6ddc311480b7",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        576
+      ],
+      "id": "9ca67ecd-209c-40ef-ace9-bc380b26aea8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        576
+      ],
+      "id": "7540b55d-a9d7-4fda-a143-290859be66cc",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## How it works\n- Upload an applicant's resume PDF file through the n8n form submission when workflow is executed.\n- Resume content is scraped and extracted to be fed to the AI agent more conveniently and accurately.\n- AI agent evaluates the applicant's profile using the Job description and role outlined in its system prompt (configured within the AI Agent node)\n- Match/compatibility score, along with detailed evaluation summary and reasons are then sent to your email via the Gmail node.",
+        "height": 272,
+        "width": 496,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "cf55dd02-47b1-49ba-a0af-659b7ab90f19",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Configuration Steps\n- Credentials needed: Google OAuth2 Credentials (for Gmail) & Gemini API (or any AI model).\n\n- Configure AI Agent's system instructions inside the Agent node to include your Job Description and Role Title (input placeholders for those two details are already provided within the detailed system prompt)\n\n- Add your email address inside the Gmail node so the workflow knows which email to send the results summary to.",
+        "height": 192,
+        "width": 912,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        -48
+      ],
+      "typeVersion": 1,
+      "id": "39d6f5ab-079f-4d83-ab64-a4e744f1c6fc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Prompt Engineered System Instructions to ensure AI calculates accurate ratings and evaluations.",
+        "height": 272,
+        "width": 448,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        208
+      ],
+      "typeVersion": 1,
+      "id": "527aa7d1-5bf9-4c15-90ef-854149605510",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "formTitle": "Input Applicant's Resume",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Resume File",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        288
+      ],
+      "id": "8bdc435d-1e6a-4d95-b176-c79ec3d77bc5",
+      "name": "On form submission",
+      "webhookId": "370e2d91-86a4-44bc-9767-ea330cab06c2"
+    },
+    {
+      "parameters": {
+        "subject": "Job Match Rating ",
+        "emailType": "text",
+        "message": "=Recent screening results for candidate:\n\n{{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1232,
+        288
+      ],
+      "id": "1ad6c5b8-e183-42b4-81c0-79e637099c61",
+      "name": "Send results to your Email",
+      "webhookId": "d3ba81af-0cce-4806-ae19-b13f243df0d9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Using the following scraped information from the resume:  {{ $json.text }}\n\nPlease perform a resume screening and job compatibility evaluation at a high-level HR standard following the detailed instructions in the System Message.",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=# SYSTEM ROLE\nYou are a **Senior Talent Acquisition Specialist**. Your goal is to screen incoming resumes for a busy HR Manager. You do not just match keywords; you also evaluate the *potential success* of a candidate in a specific role. You provide a realistic, human-readable assessment that highlights both risks and potential.\n\n# INPUT DATA\nYou will the following information: \n1. JOB_ROLE: (input role)\n\n2. JOB_DESCRIPTION: (Input Detailed Job Description)\n\n3. APPLICANTS_RESUME: Will be provided via the user prompt.\n\n# EVALUATION FRAMEWORK\nAnalyze the candidate using this 3-step mental model:\n\n1.  **The \"Can Do\" Test (Skills):** Does the candidate possess the hard skills required? (e.g., specific software, languages, certifications).\n2.  **The \"Will Do\" Test (Experience):** Does their history suggest they can handle the *scope* of this specific JOB_ROLE? (e.g., look for evidence of similar responsibility levels, not just years worked).\n3.  **The \"Fit\" Test (Presentation):** Is the resume structured like a professional in this field? Are there red flags like typos, gaps, or generic fluff?\n\n# SCORING CRITERIA\n-   **90-100 (Ideal Match):** Checks every box, exceeds requirements, perfect presentation.\n-   **75-89 (Strong Contender):** Missing minor skills but has strong core experience. Worth interviewing.\n-   **50-74 (Potential Fit):** Significant gaps in skills or experience, or a \"pivot\" candidate. Risky but potential upside.\n-   **0-49 (Not a Fit):** Lacks fundamental requirements or experience is irrelevant.\n\n# OUTPUT FORMAT\nProvide your assessment in the following format exactly. Keep the \"Reasoning\" concise and professional.\n\n**Match Rating:** [Integer]/100\n\n**Executive Summary:**\n[2 sentences explaining the rating. Start with the strongest positive trait, then mention the primary concern if any.]\n\n**Why it's Good (Strengths):**\n- [Point 1: Specific skill or experience match]\n- [Point 2]\n\n**Why it's Bad (Risks/Gaps):**\n- [Point 1: Missing critical skill or experience gap]\n- [Point 2]\n "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        624,
+        288
+      ],
+      "id": "5d508616-2e99-4257-a9a3-cf8d6055011d",
+      "name": "Talent Acquisition Manager",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {
+    "Talent Acquisition Manager": [
+      {
+        "json": {
+          "output": "To provide the most accurate assessment, I have evaluated this candidate against a **Junior AI Automation Developer / Data Science Intern** profile, as this aligns best with the candidate's current academic standing and technical trajectory.\n\n**Match Rating:** 82/100\n\n**Executive Summary:**\n__ is an exceptionally high-potential candidate who demonstrates a rare blend of rigorous academic achievement and proactive, self-taught technical application. While his early undergraduate status is a logistical factor, his hands-on experience with RAG (Retrieval-Augmented Generation) and workflow automation (n8n/Zapier) makes him more \"plug-and-play\" than many senior-year students.\n\n**Why it's Good (Strengths):**\n*   **Practical AI Implementation:** Unlike many entry-level candidates who focus solely on theory, Travis has a proven track record of deploying functional AI automation tools (n8n, Pinecone, OpenRouter) that delivered measurable business results (98% improvement in service operations).\n*   **High-Caliber Analytical Foundation:** His background in International Baccalaureate (3.9 GPA) and his research into prey-predator modeling demonstrate a strong mathematical and logical foundation necessary for advanced data science work.\n*   **Entrepreneurial \"Builder\" Mindset:** His freelance work and project initiatives (Phoenix Resources) suggest he is a self-starter who requires minimal hand-holding to take a concept from ideation to deployment.\n\n**Why it's Bad (Risks/Gaps):**\n*   **Early Career Stage:** As a first-year student (graduating 2028), his professional experience is limited to short-term internships and freelance projects, which may mean he lacks exposure to long-term enterprise software development lifecycles (SDLC) or collaborative production environments.\n*   **Breadth vs. Depth:** His tech stack is impressive but fragmented (ranging from AR/VR and Social Media to low-level NumPy vectorization); he may require mentorship to focus these skills into a specialized professional workflow."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Talent Acquisition Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Talent Acquisition Manager",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Talent Acquisition Manager",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Talent Acquisition Manager": {
+      "main": [
+        [
+          {
+            "node": "Send results to your Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "28605267-28cd-4b8d-a2ff-3d5bf649a6e8",
+  "meta": {
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "BhyYHs4cCbFq4g89",
+  "tags": []
+}

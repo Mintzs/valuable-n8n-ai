@@ -1,0 +1,268 @@
+{
+  "name": "Landing Page Analysis & Optimizer for Conversion",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Conversion Rate Optimizer",
+        "formDescription": "Your landing page determines how well you convert leads and users; optimize it now.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "The website / landing page link",
+              "placeholder": "Input URL here",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2d2f7f43-4893-4663-ae33-97d2ad606319",
+      "name": "Landing Page Url",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "0818531a-3892-49f6-af78-cde8d538b205",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json['The website / landing page link'] }}",
+        "options": {}
+      },
+      "id": "58e7268e-f2ec-43cb-888a-dc306898b79d",
+      "name": "Scrape Website",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        208,
+        0
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.data }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "ca4a2599-7fab-48b5-ae52-19a78d97c8ae",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "sendTo": "something@gmail.com",
+        "subject": "Website Landing Page Audit Report",
+        "emailType": "text",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        992,
+        0
+      ],
+      "id": "6a7023c3-e066-49e2-ab21-0eaf84c3d8ac",
+      "name": "Send a message",
+      "webhookId": "ddb6614f-a773-4899-aa5e-17e70a19bdca",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1XL7keJP5GACTJd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        496,
+        224
+      ],
+      "id": "8564ce00-95df-42ab-96d2-dd0dd50606ac",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        224
+      ],
+      "id": "111581bd-5d95-418f-8a5e-30db72b9603b",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "hItV0DcGFUMvbYYf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## How It Works\n- Input the website page link via the n8n form\n- Workflow then scrapes the HTML content and converts it into markdown\n- The website link, HTML, and markdown-converted HTML is then fed into the AI agent to analyze, following a descriptive and engineered system instruction.\n- The report and analysis of the AI agent will then be sent via Gmail to your email.",
+        "height": 224,
+        "width": 560,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "eb1db574-4473-4260-a852-f81421b016e3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Following the system instructions, you will analyze the following website that is provided to you in both markdown and html form. However, if you can browse and access the website itself, here is the website link: {{ $('Landing Page Url').item.json['The website / landing page link'] }}\n\n\n- MARKDOWN: {{ $json.data }}\n\n- HTML: {{ $('Scrape Website').item.json.data }}\n",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "<role>\nYou are a Senior Conversion Rate Optimization (CRO) Auditor and SEO Strategist with a track record of scaling high-performance landing pages. Your analysis is objective, data-driven, and highly specific. You do not use hyperbole or \"roast\" the user. Your goal is to provide a professional, clinical assessment of the landing page's current performance and actionable steps to elevate it to world-class standards.\n</role>\n\n<objective>\nConduct a comprehensive, unbiased audit of the provided landing page content. Your goal is to:\n1.  **Rate:** Objectively score the page based on industry best practices.\n2.  **Diagnose:** Identify both strengths (to keep) and weaknesses (to improve).\n3.  **Optimize:** Provide specific, tactical recommendations to increase conversion rates and SEO visibility.\n</objective>\n\n<analysis_guidelines>\nAnalyze the content through these professional lenses:\n\n1.  **Value Proposition & Clarity:**\n    *   Does the user understand *immediately* (within 5 seconds) what the offer is and who it is for?\n    *   Is the Unique Selling Proposition (USP) clearly articulated?\n\n2.  **Conversion Psychology:**\n    *   Are objections (price, trust, effort) proactively addressed?\n    *   Is the \"Ask\" (Call to Action) clear, valuable, and low-friction?\n\n3.  **User Experience (UX) & Readability:**\n    *   Is the content scannable (short paragraphs, clear headers)?\n    *   Is the tone appropriate for the target audience?\n\n4.  **SEO & Structure:**\n    *   Are the H1/H2 headers structured logically for search engines?\n    *   Does the content match the likely search intent of the visitor?\n</analysis_guidelines>\n\n<output_format>\nYour output must be a clean, well-formatted Markdown report. Follow this exact structure:\n\n# 📊 Landing Page Audit Report\n*(A brief executive summary of your findings. 2-3 sentences max.)*\n\n---\n\n# 🏆 Scorecard\n*(Rate these pillars on a scale of 1-10 and provide a 1-sentence justification for the score)*\n*   **Clarity & Value Prop:** [Score]/10 - *(Reason)*\n*   **Copywriting & Persuasion:** [Score]/10 - *(Reason)*\n*   **Trust & Social Proof:** [Score]/10 - *(Reason)*\n*   **SEO & Structure:** [Score]/10 - *(Reason)*\n\n**Overall Grade:** [A/B/C/D/F]\n\n---\n\n# ✅ What is Working Well\n*(List 2-3 specific elements the page is doing correctly. Be specific about why they work.)*\n\n# ⚠️ Critical Areas for Improvement\n*(Identify the top 3-4 friction points or missed opportunities. Be objective and clinical.)*\n\n---\n\n# 🛠️ Optimization Recommendations (The Action Plan)\n\n**1. Refine the Headlines**\n*   *Analysis:* (Critique the current H1/H2s)\n*   *Recommendation:* (Draft specific alternatives the user can test)\n\n**2. Strengthen the Call-to-Action (CTA)**\n*   *Analysis:* (Evaluate current CTA visibility and value)\n*   *Recommendation:* (Suggest improved button copy or placement)\n\n**3. Advanced CRO Tactics**\n*   *(Suggest 2-3 specific, high-level strategies relevant to this specific business context. e.g., \"Implement a risk-reversal guarantee\" or \"Add specific trust badges near the buy button\".)*\n\n**4. SEO Enhancements**\n*   *(Specific advice on keywords, semantic terms, or structural changes to improve ranking.)*\n\n---\n\n# 💡 Final Verdict\n*(One final encouraging sentence summarizing the potential of the page if these changes are made.)*\n</output_format>\n\n<rules>\n1.  **Be Objective:** If the page is great, say it is great. If it is poor, explain why professionally.\n2.  **Be Specific:** Do not give generic advice like \"Improve readability.\" Instead, say \"Break paragraph 3 into bullet points for better scanning.\"\n3.  **Reference Content:** Quote specific lines from the landing page to contextualize your advice.\n4.  **Tone:** Professional, helpful, expert, and constructive.\n</rules>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "80040ae8-ec86-4015-a830-b6c82eac4c1c",
+      "name": "Landing Page Conversion Expert",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## Configuration\n- Credentials needed: Gemini (or any AI model API) & Gmail OAuth2\n- Configure Gmail node with your own email to send to\n- Edit system prompt to fit your needs or focus in analysis report",
+        "height": 128,
+        "width": 560,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        496,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "2a44c8fe-2088-4a25-83eb-fe432afd75d7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Analyzes landing page with SEO & lead conversion focus",
+        "height": 432,
+        "width": 368,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        560,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "d7402043-e2e5-4204-89cb-bcf133bb8332",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Scrape Website": {
+      "main": [
+        [
+          {
+            "node": "Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Landing Page Url": {
+      "main": [
+        [
+          {
+            "node": "Scrape Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown": {
+      "main": [
+        [
+          {
+            "node": "Landing Page Conversion Expert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Landing Page Conversion Expert",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Landing Page Conversion Expert",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Landing Page Conversion Expert": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "58b6febc-211f-4981-8fc3-2b281c359171",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a1146627e3880eea431c9eaf7cccb6ad2593c29266b33171dab8b9568e518e51"
+  },
+  "id": "3VswQDoU4cfhxuU5",
+  "tags": []
+}
